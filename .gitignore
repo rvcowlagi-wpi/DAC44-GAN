@@ -263,3 +263,6 @@ octave-workspace
 *.avi
 *.mp4
 *.mpeg
+
+# Data
+*.csv
