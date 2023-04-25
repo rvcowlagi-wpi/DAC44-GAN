@@ -266,3 +266,7 @@ octave-workspace
 
 # Data
 *.csv
+
+# Sandbox
+sandbox.py
+Minimum-Time/Data/data_mintime.txt
