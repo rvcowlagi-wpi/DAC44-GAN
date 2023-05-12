@@ -266,6 +266,7 @@ octave-workspace
 
 # Data
 *.csv
+*.txt
 
 # Sandbox
 sandbox.py
