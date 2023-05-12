@@ -16,23 +16,6 @@ device = "cuda"
 
 start_clock = time.time()
 
-# Step 1: Load Dataset
-# Step 2: Make Dataset Iterable
-# Step 3: Create Model Class (G and D)
-# Step 4: Instantiate Model Class
-# Step 5: Instantiate Loss Class
-# Step 6: Instantiate Optimizer Class
-# Step 7: Train Model
-# Step 8: View results: losses, plot of trajectory generated
-
-
-# STEP 2: Make dataset iterable and load
-#
-# We have N training examples (each trajectory example).
-# Split them into smaller batch sizes, say each batch with M examples, M < N.
-# Then we have K iterations = N / M. An epoch consists of these 5 iterations.
-# We can choose the number of epochs.
-
 n_features = 50
 n_discretization = 25
 my_batch_size = 50
@@ -88,6 +71,7 @@ dimD_4 = 225
 dimD_5 = 100
 dimD_6 = 25
 
+
 class Discriminator(nn.Module):
     def __init__(self):
         super().__init__()
@@ -128,30 +112,6 @@ learning_rate_disc = 0.01
 optimizerD = torch.optim.SGD(modelD.parameters(), lr=learning_rate_disc)
 optimizerG = torch.optim.SGD(modelG.parameters(), lr=learning_rate_gen)
 
-
-# In a linear layer y = A x + B; our parameters A and B
-# Hence each linear layer has 2 groups of parameters A and B
-# First linear layer size ell_*2 here 2 is input size and ell_
-# is next layers size (here the output)
-# Readout layer size ; the size of out output
-
-# print('\nGenerator:')
-# print('\t length of model', len(list(modelG.parameters())))
-# print('\t first layer parameter', list(modelG.parameters())[0].size())
-# print('\t first layer bias', list(modelG.parameters())[1].size())
-# print('\t second layer parameter', list(modelG.parameters())[2].size())
-# print('\t second layer bias', list(modelG.parameters())[3].size())
-#
-# print('\nDiscriminator: ')
-# print('\t length of model', len(list(modelD.parameters())))
-# print('\t first layer parameter', list(modelD.parameters())[0].size())
-# print('\t first layer bias', list(modelD.parameters())[1].size())
-# print('\t second layer parameter', list(modelD.parameters())[2].size())
-# print('\t second layer bias', list(modelD.parameters())[3].size())
-
-# STEP 7: Train the GAN
-
-
 # Label for fake and real data"""
 def ones_target(size):
     #   Tensor containing ones, with shape = size    """
@@ -172,8 +132,6 @@ D_losses = []
 for epoch in range(n_epochs):
     print('\n======== Epoch ', epoch, ' ========')
     for i, (traj) in enumerate(train_loader):
-
-
         # DISCRIMINATOR
         # Reset gradients
         optimizerD.zero_grad()
@@ -205,34 +163,6 @@ for epoch in range(n_epochs):
         optimizerD.step()
 
         D_losses.append(errorD.item())
-
-        # GENERATOR
-        # Reset gradients
-        modelG.zero_grad()
-        optimizerG.zero_grad()
-
-        z = torch.distributions.uniform.Uniform(-1, 1).sample([my_batch_size, input_dimG]).to(device)  # latent vector
-        y_gG = modelG(z)
-        y_d_fakeG = modelD(y_gG)  # Since we just updated D, perform another forward pass of all-fake batch through D
-
-        # Calculate errorD and backpropagate """
-        errorG = loss_dg(y_d_fakeG, ones_target(my_batch_size))
-        errorG.backward()
-        # # Update G
-        optimizerG.step()
-        #
-        # loss = criterion(inputs, y_gG)  # Difference between real and fake trajectory points
-
-        n_iter += 1
-
-        # Save Losses for plotting later
-        G_losses.append(errorG.item())
-
-
-        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
-        #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
-        #     Disc_percentage = torch.mean(y_d_fakeG)
-        #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
 
 stop_clock = time.time()
 elapsed_hours = int((stop_clock - start_clock) // 3600)
