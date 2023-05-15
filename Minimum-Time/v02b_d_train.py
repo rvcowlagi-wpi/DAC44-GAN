@@ -16,9 +16,9 @@ device = "cuda"
 
 start_clock = time.time()
 
-n_features = 50
+n_features = 175
 n_discretization = 25
-my_batch_size = 50
+my_batch_size = 2000
 
 data_mintime = np.array(pd.read_csv('Data/data_mintime.txt'))
 train_loader = torch.utils.data.DataLoader(data_mintime, batch_size=my_batch_size)
