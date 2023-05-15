@@ -2,7 +2,7 @@
 
 ## Version Guide
 ### Min time
-v01_gan: simultaneous training of G and D
+{~~~v01_gan~~~}: simultaneous training of G and D
 v02a_d_train: independent d training (NUB data loader)
 v02a_d_test: independent d test (NUB data loader)
 v02a_g_train: independent G train (NUB data loader)
