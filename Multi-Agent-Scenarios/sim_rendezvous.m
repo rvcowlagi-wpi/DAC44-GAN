@@ -46,11 +46,11 @@ DT_					= 1E-3;
 SIM_OPTIONS.measNoise		= false;
 SIM_OPTIONS.commsDelay		= false;		
 SIM_OPTIONS.commsTopology	= 'distance';									% Options: {'fixed', 'distance'}
-SIM_OPTIONS.duration		= 10;
-SIM_OPTIONS.dualScreen		= true;
+SIM_OPTIONS.duration		= 3;
+SIM_OPTIONS.dualScreen		= false;
 
 %% Control Parameters
-gainK = 3;
+gainK = 1;
 
 %% Initialization
 % x_		= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, N_AGENTS);
@@ -91,9 +91,9 @@ while (1)
 	xStore(:, :, nIter)	= x_;
 	amStore(:, :, nIter)= adjacency_;
 
-	t_	= t_ + DT_
+	t_	= t_ + DT_;
 	y_	= x_;
-	if t_ > SIM_OPTIONS.duration
+	if t_ > SIM_OPTIONS.duration + 0.5*DT_
 		break;
 	end
 	
@@ -120,26 +120,40 @@ end
 figure('Name','Multi-Agent Rendezvous', 'Units','normalized', ...
 		'OuterPosition', [dispXOffset + 0.1 0.1 0.5 0.8])
 ax = gca;
-thisColor = ax.ColorOrder(1,:);
-plot(xStore(1,:,1), xStore(2,:,1), ...
-	'Marker','o', 'MarkerFaceColor', thisColor, 'MarkerSize', 20, ...
-	'LineStyle','none'); hold on; grid on; axis equal
+thisColor	= ax.ColorOrder(1,:);
+myFont		= 'Times New Roman';
+
+grHdlTmp = plot(0,0); hold on; grid on; axis equal
 xlim(1.5*WORKSPACE_SIZE*[-1 1]); ylim(1.5*WORKSPACE_SIZE*[-1 1])
-ax.FontName = 'Times New Roman';
+ax.FontName = myFont;
 ax.FontSize = 16;
+delete(grHdlTmp)
 
+nowText			= num2str(round(posixtime(datetime)));
+videoFileName	= ['Results/202305/rendezvous_plain_' nowText '.mp4'];
+dataFileName	= ['Results/202305/rendezvous_plain_' nowText '.mat'];
 
-plot_network(1)
+vid_	= VideoWriter(videoFileName);
+vid_.open();
+nSkip	= round(nIter / 500);
+for n1 = 1:nSkip:nIter
+	cla();
+	plot_network(n1);
+	plot_nodes(n1);
 
-for m1 = 1:N_AGENTS
-	text(xStore(1,m1,1)-0.01, xStore(2,m1,1), num2str(m1), ...
-		'FontSize', 11, 'FontName', 'Times New Roman', ...
-		'FontWeight', 'bold', 'Color', 'w')
+	text(-1.42*WORKSPACE_SIZE, 1.42*WORKSPACE_SIZE, ['$t = $' num2str(tStore(n1))], ...
+		"FontName", myFont, 'FontSize', 16, 'Interpreter', 'latex')
+	drawnow();
+
+	vid_.writeVideo(getframe(gcf));
 end
+vid_.close();
 
+save(dataFileName)
 
 	%% Distance-based comms	network graph
 	function proximity_graph()
+		adjacency_	= zeros(N_AGENTS);
 		for m2 = 1:N_AGENTS
 			distance_ = x_ - x_(:, m2);
 			distance_ = ( distance_(1, :).^2 + distance_(2, :).^2 ).^(0.5);
@@ -157,10 +171,27 @@ end
 	function plot_network(ell_)
 		for m2 = 1:N_AGENTS
 			for m3 = (m2 + 1) : N_AGENTS
-				if ~adjacency_(m2, m3), continue; end
+				if ~amStore(m2, m3, ell_), continue; end
 				line([xStore(1, m2, ell_), xStore(1, m3, ell_)], ...
 					[xStore(2, m2, ell_), xStore(2, m3, ell_)]);
 			end
+		end
+	end
+
+	%% Draw nodes
+	function plot_nodes(ell_)
+		plot(xStore(1, :, ell_), xStore(2, :, ell_), ...
+			'Marker','o', 'MarkerFaceColor', thisColor, ...
+			'MarkerEdgeColor', thisColor, 'MarkerSize', 25, ...
+			'LineStyle','none');
+
+		for m2 = 1:N_AGENTS
+			textXOffset = 0.01;
+			if length(num2str(m2)) > 1, textXOffset = textXOffset + 0.02; end
+			text(xStore(1, m2, ell_) - textXOffset, xStore(2, m2, ell_), ...
+				num2str(m2), ...
+				'FontSize', 13, 'FontName', 'Times New Roman', ...
+				'FontWeight', 'bold', 'Color', 'w')
 		end
 	end
 
