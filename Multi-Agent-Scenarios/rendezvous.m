@@ -31,42 +31,57 @@ PROGRAM DESCRIPTION
 Multi-agent rendezvous simulation based on 
 	M. Ji and M. Egerstedt, "Distributed Coordination Control of Multiagent
 	Systems While Preserving Connectedness," in IEEE Transactions on Robotics,
-	vol. 23, no. 4, pp. 693-703, Aug. 2007, doi: 10.1109/TRO.2007.900638.  
+	vol. 23, no. 4, pp. 693-703, Aug. 2007, doi: 10.1109/TRO.2007.900638.
+
+Connectivity-preserving control.
 %}
 
-function rendezvous_plain()
+function rendezvous()
 close all; clc;
 
 %% Simulation Options and Parameters
 WORKSPACE_SIZE		= 1;
-N_AGENTS			= 20;
+N_AGENTS			= 10;
 MAX_COMMS_DISTANCE	= 0.5;													% Disk size for distance-based comms topology 
 DT_					= 1E-3;
+MAX_TRUST_DISTANCE	= MAX_COMMS_DISTANCE*0.9;
 
 SIM_OPTIONS.measNoise		= false;
 SIM_OPTIONS.commsDelay		= false;		
 SIM_OPTIONS.commsTopology	= 'distance';									% Options: {'fixed', 'distance'}
 SIM_OPTIONS.duration		= 3;
 SIM_OPTIONS.dualScreen		= false;
+SIM_OPTIONS.makeVideo		= true;
+SIM_OPTIONS.saveData		= true;
+SIM_OPTIONS.loadInit		= false;
 
 %% Control Parameters
-gainK = 1;
+gainK = 3;
+controller_ = 'plain';													% Options: {'plain', 'weighted'}
 
 %% Initialization
-%----- Make sure initial agent locations are "spread out" yet connected
-x_		= zeros(2, N_AGENTS);
-x_(:, 1)= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, 1);
-m1 = 2;
-while m1 <= N_AGENTS
-	x_(:, m1)	= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, 1);
-	dx	= x_(:, m1) - x_(:, 1:m1-1);
-	dx	= (dx(1, :).^2 + dx(2, :) .^2).^(0.5);
-	if ((m1 <= 4) && any(dx < MAX_COMMS_DISTANCE)) || ...
-			((m1 > 4) && any(dx < MAX_COMMS_DISTANCE) && ...
-			(sum(dx > MAX_COMMS_DISTANCE) > m1 - 3))
-		m1 = m1 + 1;
+
+if SIM_OPTIONS.loadInit
+	load("rendezvous_previous_init.mat", "x_")
+else
+	%----- Make sure initial agent locations are "spread out" yet connected
+	x_		= zeros(2, N_AGENTS);
+	x_(:, 1)= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, 1);
+	m1 = 2;
+	while m1 <= N_AGENTS
+		x_(:, m1)	= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, 1);
+		dx	= x_(:, m1) - x_(:, 1:m1-1);
+		dx	= (dx(1, :).^2 + dx(2, :) .^2).^(0.5);
+		if ((m1 <= 4) && any(dx < MAX_TRUST_DISTANCE)) || ...
+				((m1 > 4) && any(dx < MAX_TRUST_DISTANCE) && ...
+				(sum(dx > MAX_COMMS_DISTANCE) > m1 - 3))
+			m1 = m1 + 1;
+		end
 	end
+	
+	save("rendezvous_previous_init.mat", "x_")
 end
+xCentroid = sum(x_, 2) / N_AGENTS;
 
 t_		= 0;
 nIter	= 1;
@@ -77,19 +92,21 @@ friendship_	= zeros(N_AGENTS);
 degree_		= zeros(N_AGENTS);
 Laplacian_	= zeros(N_AGENTS);
 if strcmp(SIM_OPTIONS.commsTopology, 'distance')
-	proximity_graph()
+	proximity_graph(0)
 end
 
 %----- Store results
 tStore	= zeros(nExpIter, 1);
 xStore	= zeros(2, N_AGENTS, nExpIter);
 amStore	= zeros(N_AGENTS, N_AGENTS, nExpIter);
+fmStore	= zeros(N_AGENTS, N_AGENTS, nExpIter);
 
 %% Simulate
 while (1)
 	tStore(nIter)		= t_;
 	xStore(:, :, nIter)	= x_;
 	amStore(:, :, nIter)= adjacency_;
+	fmStore(:, :, nIter)= friendship_;
 
 	t_	= t_ + DT_;
 	y_	= x_;
@@ -97,9 +114,16 @@ while (1)
 		break;
 	end
 	
+	%----- Check if consensus achieved
+	distances_	= x_ - x_(:, 1);
+	distances_	= (distances_(1, :).^2 + distances_(2, :).^2).^(0.5);
+	if all(distances_ < WORKSPACE_SIZE * 5E-3), break; end
+
+	nIter	= nIter + 1;
+
 	%----- Update topology if distance-based
 	if strcmp(SIM_OPTIONS.commsTopology, 'distance')
-		proximity_graph()
+		proximity_graph(nIter)
 	end
 
 	%----- Update state
@@ -107,8 +131,6 @@ while (1)
 		xmDot		= agent_dynamics(m1);
 		x_(:, m1)	= x_(:, m1) + xmDot*DT_;
 	end
-
-	nIter	= nIter + 1;
 end
 
 %% Plot
@@ -118,7 +140,7 @@ else
 	dispXOffset = 0;
 end
 figure('Name','Multi-Agent Rendezvous', 'Units','normalized', ...
-		'OuterPosition', [dispXOffset + 0.1 0.1 0.5 0.8])
+		'OuterPosition', [dispXOffset + 0.05 0.05 0.5 0.5*16/9])
 ax = gca;
 thisColor	= ax.ColorOrder(1,:);
 myFont		= 'Times New Roman';
@@ -128,14 +150,19 @@ xlim(1.5*WORKSPACE_SIZE*[-1 1]); ylim(1.5*WORKSPACE_SIZE*[-1 1])
 ax.FontName = myFont;
 ax.FontSize = 16;
 delete(grHdlTmp)
+ax.Units = 'pixels';
 
 nowText			= num2str(round(posixtime(datetime)));
-videoFileName	= ['Results/202305/rendezvous_plain_run' nowText '.mp4'];
-dataFileName	= ['Results/202305/rendezvous_plain_run' nowText '.mat'];
+videoFileName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.mp4'];
+dataFileName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.mat'];
+firstframeName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.png'];
 
-vid_	= VideoWriter(videoFileName);
-vid_.open();
-nSkip	= round(nIter / 500);
+
+if SIM_OPTIONS.makeVideo
+	vid_	= VideoWriter(videoFileName, "MPEG-4");
+	vid_.open();
+end
+nSkip	= max(1, round(nIter / 500));
 for n1 = 1:nSkip:nIter
 	cla();
 	plot_network(n1);
@@ -145,15 +172,22 @@ for n1 = 1:nSkip:nIter
 		"FontName", myFont, 'FontSize', 16, 'Interpreter', 'latex')
 	drawnow();
 
-	vid_.writeVideo(getframe(gcf));
+	if SIM_OPTIONS.makeVideo
+		ax = gca;
+		vid_.writeVideo(getframe(ax, [-50 -50 ax.Position(3) + 80 ax.Position(4) + 50]));
+		if n1 == 1
+			exportgraphics(gcf,firstframeName, 'Resolution', 300)
+		end
+	end
 end
-vid_.close();
+if SIM_OPTIONS.makeVideo, vid_.close(); end
 
-save(dataFileName)
+if SIM_OPTIONS.saveData, save(dataFileName); end
 
 	%% Distance-based comms	network graph
-	function proximity_graph()
+	function proximity_graph(ell_)
 		adjacency_	= zeros(N_AGENTS);
+		friendship_	= zeros(N_AGENTS);
 		for m2 = 1:N_AGENTS
 			distance_ = x_ - x_(:, m2);
 			distance_ = ( distance_(1, :).^2 + distance_(2, :).^2 ).^(0.5);
@@ -161,10 +195,18 @@ save(dataFileName)
 
 			adjacency_(m2, isProximal)	= 1;
 			adjacency_(m2, m2)			= 0;
+
+			if ell_ > 1
+				isFriend= (distance_ <= MAX_TRUST_DISTANCE) | ...
+					(isProximal & fmStore(m2, :, ell_ - 1)); 
+			else
+				isFriend= distance_ <= MAX_TRUST_DISTANCE;
+			end			
+			friendship_(m2, isFriend)	= 1;
+			friendship_(m2, m2)			= 0;
 		end
 		degree_		= diag(sum(adjacency_, 1));
-		Laplacian_	= degree_ - adjacency_;
-		friendship_ = adjacency_;
+		Laplacian_	= degree_ - adjacency_;		
 	end
 
 	%% Draw network topology
@@ -193,6 +235,11 @@ save(dataFileName)
 				'FontSize', 13, 'FontName', 'Times New Roman', ...
 				'FontWeight', 'bold', 'Color', 'w')
 		end
+
+		plot(xCentroid(1), xCentroid(2), ...
+			'Marker','diamond', 'MarkerFaceColor', ax.ColorOrder(2,:), ...
+			'MarkerEdgeColor', ax.ColorOrder(2,:), 'MarkerSize', 18, ...
+			'LineStyle','none');
 	end
 
 	%% Agent dynamics
@@ -204,7 +251,14 @@ save(dataFileName)
 		%-- Update based on friend data
 		um_ = 0;
 		for m2 = friendAgents
-			um_ = um_ - gainK*(y_(:, m_) - y_(:, m2));
+			if strcmp(controller_, 'plain')
+				um_ = um_ - gainK*(y_(:, m_) - y_(:, m2));
+			else
+				distanceToFriend = norm( y_(:, m_) - y_(:, m2) );
+				um_ = um_ - (2*MAX_COMMS_DISTANCE - 2*distanceToFriend) * ...
+					(y_(:, m_) - y_(:, m2)) / ...
+					((MAX_COMMS_DISTANCE - distanceToFriend)^2);
+			end
 		end
 		xmDot = um_;
 	end
