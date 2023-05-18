@@ -34,12 +34,12 @@ Multi-agent rendezvous simulation based on
 	vol. 23, no. 4, pp. 693-703, Aug. 2007, doi: 10.1109/TRO.2007.900638.  
 %}
 
-function sim_rendezvous()
+function rendezvous_plain()
 close all; clc;
 
 %% Simulation Options and Parameters
 WORKSPACE_SIZE		= 1;
-N_AGENTS			= 12;
+N_AGENTS			= 20;
 MAX_COMMS_DISTANCE	= 0.5;													% Disk size for distance-based comms topology 
 DT_					= 1E-3;
 
@@ -53,7 +53,7 @@ SIM_OPTIONS.dualScreen		= false;
 gainK = 1;
 
 %% Initialization
-% x_		= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, N_AGENTS);
+%----- Make sure initial agent locations are "spread out" yet connected
 x_		= zeros(2, N_AGENTS);
 x_(:, 1)= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, 1);
 m1 = 2;
@@ -62,7 +62,7 @@ while m1 <= N_AGENTS
 	dx	= x_(:, m1) - x_(:, 1:m1-1);
 	dx	= (dx(1, :).^2 + dx(2, :) .^2).^(0.5);
 	if ((m1 <= 4) && any(dx < MAX_COMMS_DISTANCE)) || ...
-			((m1 > 2) && any(dx < MAX_COMMS_DISTANCE) && ...
+			((m1 > 4) && any(dx < MAX_COMMS_DISTANCE) && ...
 			(sum(dx > MAX_COMMS_DISTANCE) > m1 - 3))
 		m1 = m1 + 1;
 	end
@@ -130,8 +130,8 @@ ax.FontSize = 16;
 delete(grHdlTmp)
 
 nowText			= num2str(round(posixtime(datetime)));
-videoFileName	= ['Results/202305/rendezvous_plain_' nowText '.mp4'];
-dataFileName	= ['Results/202305/rendezvous_plain_' nowText '.mat'];
+videoFileName	= ['Results/202305/rendezvous_plain_run' nowText '.mp4'];
+dataFileName	= ['Results/202305/rendezvous_plain_run' nowText '.mat'];
 
 vid_	= VideoWriter(videoFileName);
 vid_.open();
