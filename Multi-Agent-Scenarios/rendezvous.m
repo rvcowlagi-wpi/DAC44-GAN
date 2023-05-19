@@ -45,19 +45,20 @@ N_AGENTS			= 10;
 MAX_COMMS_DISTANCE	= 0.5;													% Disk size for distance-based comms topology 
 DT_					= 1E-3;
 MAX_TRUST_DISTANCE	= MAX_COMMS_DISTANCE*0.9;
+DTK_DELAY			= 2;													% Delay (in integer multiples of base time step DT_)
 
 SIM_OPTIONS.measNoise		= false;
-SIM_OPTIONS.commsDelay		= false;		
+SIM_OPTIONS.commsDelay		= true;		
 SIM_OPTIONS.commsTopology	= 'distance';									% Options: {'fixed', 'distance'}
 SIM_OPTIONS.duration		= 3;
 SIM_OPTIONS.dualScreen		= false;
 SIM_OPTIONS.makeVideo		= true;
 SIM_OPTIONS.saveData		= true;
-SIM_OPTIONS.loadInit		= false;
+SIM_OPTIONS.loadInit		= true;
 
 %% Control Parameters
 gainK = 3;
-controller_ = 'plain';													% Options: {'plain', 'weighted'}
+controller_ = 'weighted';														% Options: {'plain', 'weighted'}
 
 %% Initialization
 
@@ -74,16 +75,27 @@ else
 		dx	= (dx(1, :).^2 + dx(2, :) .^2).^(0.5);
 		if ((m1 <= 4) && any(dx < MAX_TRUST_DISTANCE)) || ...
 				((m1 > 4) && any(dx < MAX_TRUST_DISTANCE) && ...
-				(sum(dx > MAX_COMMS_DISTANCE) > m1 - 3))
+				(sum(dx > 0.9*MAX_COMMS_DISTANCE) > m1 - 3))
 			m1 = m1 + 1;
 		end
 	end
-	
+
+% 	while m1 <= N_AGENTS
+% 		x_(:, m1)	= -WORKSPACE_SIZE + 2*WORKSPACE_SIZE*rand(2, 1);
+% 		dx	= x_(:, m1) - x_(:, 1:m1-1);
+% 		dx	= (dx(1, :).^2 + dx(2, :) .^2).^(0.5);
+% 		if ((m1 <= 4) && any(dx < 0.9*MAX_TRUST_DISTANCE)) || ...
+% 				((m1 > 4) && any(dx < 0.9*MAX_TRUST_DISTANCE) && ...
+% 				(sum(dx > 0.5*MAX_COMMS_DISTANCE) > m1 - 3))
+% 			m1 = m1 + 1;
+% 		end
+% 	end
 	save("rendezvous_previous_init.mat", "x_")
 end
 xCentroid = sum(x_, 2) / N_AGENTS;
 
 t_		= 0;
+y_		= x_;
 nIter	= 1;
 nExpIter= round( SIM_OPTIONS.duration / DT_ );
 
@@ -109,15 +121,21 @@ while (1)
 	fmStore(:, :, nIter)= friendship_;
 
 	t_	= t_ + DT_;
-	y_	= x_;
+	if SIM_OPTIONS.commsDelay && (nIter > DTK_DELAY)
+		y_	= xStore(:, :, nIter - DTK_DELAY);
+	else
+		y_	= x_;
+	end
 	if t_ > SIM_OPTIONS.duration + 0.5*DT_
 		break;
 	end
 	
-	%----- Check if consensus achieved
-	distances_	= x_ - x_(:, 1);
-	distances_	= (distances_(1, :).^2 + distances_(2, :).^2).^(0.5);
-	if all(distances_ < WORKSPACE_SIZE * 5E-3), break; end
+	%----- Check if an equilibrium is reached (consensus or otherwise)
+	if nIter > 1
+		dx_		= x_ - xStore(:, :, nIter - 1);
+		dxNorm	= (dx_(1, :).^2 + dx_(2, :).^2).^(0.5);
+		if all(dxNorm < 1E-5), break; end
+	end
 
 	nIter	= nIter + 1;
 
@@ -174,7 +192,8 @@ for n1 = 1:nSkip:nIter
 
 	if SIM_OPTIONS.makeVideo
 		ax = gca;
-		vid_.writeVideo(getframe(ax, [-50 -50 ax.Position(3) + 80 ax.Position(4) + 50]));
+% 		vid_.writeVideo(getframe(ax, [-50 -50 ax.Position(3) + 80 ax.Position(4) + 50]));
+		vid_.writeVideo(getframe(ax, [-50 -50 ax.Position(3) + 80 ax.Position(4)]));
 		if n1 == 1
 			exportgraphics(gcf,firstframeName, 'Resolution', 300)
 		end
@@ -250,14 +269,21 @@ if SIM_OPTIONS.saveData, save(dataFileName); end
 
 		%-- Update based on friend data
 		um_ = 0;
-		for m2 = friendAgents
-			if strcmp(controller_, 'plain')
+		if strcmp(controller_, 'plain')
+			for m2 = friendAgents
 				um_ = um_ - gainK*(y_(:, m_) - y_(:, m2));
-			else
+			end
+		else
+			for m2 = friendAgents
 				distanceToFriend = norm( y_(:, m_) - y_(:, m2) );
-				um_ = um_ - (2*MAX_COMMS_DISTANCE - 2*distanceToFriend) * ...
-					(y_(:, m_) - y_(:, m2)) / ...
-					((MAX_COMMS_DISTANCE - distanceToFriend)^2);
+				if abs(MAX_COMMS_DISTANCE - distanceToFriend) > 0.1*MAX_COMMS_DISTANCE
+					um_ = um_ - ...
+						(2*MAX_COMMS_DISTANCE - 2*distanceToFriend) * ...
+						(y_(:, m_) - y_(:, m2)) / ...
+						((MAX_COMMS_DISTANCE - distanceToFriend)^2);
+				else
+					um_ = um_ - gainK*(y_(:, m_) - y_(:, m2));
+				end
 			end
 		end
 		xmDot = um_;
