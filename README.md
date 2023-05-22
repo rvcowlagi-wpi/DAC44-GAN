@@ -12,6 +12,6 @@
 
 ### LTI
 * `v01_gan`: simultaneous training of G and D
-* `v02_gan_2d`: simultaneous training of G and D with twin D
+* `v02_gan_twin`: simultaneous training of G and D with twin D
 * `v03_g_train`: independent G training with rules D
 
