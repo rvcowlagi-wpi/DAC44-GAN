@@ -142,7 +142,7 @@ def setofrules(y_gen):
     return solution_found_, slope_check
 
 # STEP 4: Instantiate generator and discriminator classes
-# These numbers are set up for n_traj_pts = 100
+# These numbers are set up for n_features = 100
 input_dimG = 20
 modelG = Generator(input_dimG, 32, 32, 64, 64, n_traj_pts)
 modelD = Discriminator(n_traj_pts, 64, 32, 16, 1)
@@ -265,7 +265,7 @@ for epoch in range(n_epochs):
         G_losses.append(errorG.item())
         D_losses.append(errorD.item())
 
-        # if n_iter == (len(train_loader.dataset) / n_traj_pts) * n_epochs:  # i % 5 == 0:
+        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
         #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
         #     Disc_percentage = torch.mean(y_d_fakeG)
         #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
@@ -297,9 +297,9 @@ for m1 in range(0, 5):
 
 
 # figname_ = "Results/2023-01-14-LTI/lti_1d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset) // n_traj_pts) + "_pt" + str(n_traj_pts) + ".png"
+#            str(len(train_loader.dataset) // n_features) + "_pt" + str(n_features) + ".png"
 # figname_ = "Results/2023-01-14-LTI/lti_2d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset)) + "_pt" + str(n_traj_pts) + ".png"
+#            str(len(train_loader.dataset)) + "_pt" + str(n_features) + ".png"
 
 
 # fig.savefig(figname_, bbox_inches='tight')

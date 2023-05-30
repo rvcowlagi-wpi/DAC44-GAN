@@ -147,7 +147,7 @@ def setofrules(y_gen):
 # def main():
 
 # STEP 4: Instantiate generator and discriminator classes
-# These numbers are set up for n_traj_pts = 100
+# These numbers are set up for n_features = 100
 input_dimG = 20
 modelG = Generator(input_dimG, 32, 32, 64, 64, n_traj_pts)
 modelD = Discriminator(n_traj_pts, 64, 32, 16, 1)
@@ -288,7 +288,7 @@ for epoch in range(n_epochs):
         rules_out.append(solution_found)
         #D_losses.append(error_of_d2)
 
-        # if n_iter == (len(train_loader.dataset) / n_traj_pts) * n_epochs:  # i % 5 == 0:
+        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
         #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
         #     Disc_percentage = torch.mean(y_d_fakeG)
         #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
@@ -321,7 +321,7 @@ elapsed_seconds = (stop_clock - start_clock) - elapsed_hours*3600 - elapsed_minu
 print('\nElapsed time ' + str(elapsed_hours) + ':' + str(elapsed_minutes) + ':' + "%.2f" % elapsed_seconds)
 
 # # STEP 8: Plot a few sample generator results
-# t = torch.linspace(0, 10, n_traj_pts).to("cpu")
+# t = torch.linspace(0, 10, n_features).to("cpu")
 # fig, ax = plt.subplots(5, 2)
 #
 # px = 1/plt.rcParams['figure.dpi']
@@ -340,9 +340,9 @@ print('\nElapsed time ' + str(elapsed_hours) + ':' + str(elapsed_minutes) + ':' 
 
 
 # figname_ = "Results/2023-01-14-LTI/lti_1d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset) // n_traj_pts) + "_pt" + str(n_traj_pts) + ".png"
+#            str(len(train_loader.dataset) // n_features) + "_pt" + str(n_features) + ".png"
 # figname_ = "Results/2023-01-14-LTI/lti_2d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset)) + "_pt" + str(n_traj_pts) + ".png"
+#            str(len(train_loader.dataset)) + "_pt" + str(n_features) + ".png"
 
 
 # fig.savefig(figname_, bbox_inches='tight')

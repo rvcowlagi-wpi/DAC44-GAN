@@ -13,6 +13,7 @@
 ### LTI
 * `v01_gan`: simultaneous training of G and D
 * `v02_gan_twin`: simultaneous training of G and D with twin D
-* `v03_d_train`: independent D training
-* `v03_g_train`: independent G training with trained D
+* `v03_d_train`: D training, only, for LTI trajectories
+* `v03_g_train`: G training with rules D, only, for straight lines
+* `v04_g_train`: G training with rules D and pre-trained D
 
