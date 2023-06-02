@@ -34,8 +34,13 @@ files from this dataset.
 %}
 
 function datagen_general()
+
+%% General
 close all; clc;
 
+SIM_OPTIONS.dualScreen		= false;
+
+%% Setup
 %----- System
 id_			= 1;
 
@@ -48,7 +53,7 @@ x0			= [];
 system_selector(id_);
 
 %----- Dataset characteristics
-nExamples		= 10;
+nExamples		= 1E3;
 nDiscretization	= 100;														% Can be sampled down when writing to csv
 dataSize		= nDiscretization*nState;
 dt_				= tFinal / nDiscretization;									% Time step
@@ -65,9 +70,79 @@ for m = 1:nExamples
 end
 tSim	= linspace(0, tFinal, nDiscretization);
 
+%% Calculate distances among examples
+distances_ = zeros(nExamples);
+for m1 = 1:nExamples
+	for m2 = m1:nExamples
+		distances_(m1, m2) = dt_ * ...
+			sum( (trajectoryData(:, m1) - trajectoryData(:, m2)).^2 );
+	end
+end
+distances_ = distances_ + distances_';
+
+similarityBenchmark = max(distances_(:));
+
+%---- Take a new sample trajectory
+xSim	= zeros(nDiscretization, nState);
+parameter_selector(id_)
+my_simulator()
+newExample = xSim(:);
+
+%---- Calculate distance
+dNewToLibrary = zeros(1, nExamples);
+for m1 = 1:nExamples
+	dNewToLibrary(m1) = dt_ * ...
+			sum( (trajectoryData(:, m1) - newExample).^2 );
+end
+maxDNew = max(dNewToLibrary);
+
+isSimilar = (maxDNew <= similarityBenchmark)
 
 %% Plot a few trajectories
-nTrajToPlot = nExamples;
+nTrajToPlot = randperm(nExamples, 10);
+
+
+if SIM_OPTIONS.dualScreen
+	dispXOffset = 1;
+else
+	dispXOffset = 0;
+end
+figure('Name','Multi-Agent Rendezvous', 'Units','normalized', ...
+		'OuterPosition', [dispXOffset + 0.05 0.05 0.5 0.3*nState])
+ax = gca;
+% thisColor	= ax.ColorOrder(1,:);
+myFont		= 'Times New Roman';
+% 
+% grHdlTmp = plot(0,0); hold on; grid on; axis equal
+% xlim(1.5*WORKSPACE_SIZE*[-1 1]); ylim(1.5*WORKSPACE_SIZE*[-1 1])
+% ax.FontName = myFont;
+% ax.FontSize = 16;
+% delete(grHdlTmp)
+% ax.Units = 'pixels';
+% 
+% nowText			= num2str(round(posixtime(datetime)));
+% videoFileName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.mp4'];
+% dataFileName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.mat'];
+% firstframeName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.png'];
+
+
+for m1 = nTrajToPlot
+	for m2 = 1:nState
+		thisState = trajectoryData((1 + (m2 - 1)*nDiscretization):(m2*nDiscretization), m1);
+		subplot(nState, 1, m2); plot(tSim, thisState); hold on; grid on;
+	end
+end
+
+for m2 = 1:nState
+	subplot(nState, 1, m2);
+	yLabelText	= ['$x_' num2str(m2) '$'];
+	ax = gca;
+	ax.FontName = myFont;
+	ax.FontSize = 16;
+	xlabel('$t$', 'Interpreter','latex');
+	ylabel(yLabelText, 'Interpreter','latex');
+end
+
 
 % save(filename_,"tSim","trajectoryData")
 
@@ -94,32 +169,32 @@ nTrajToPlot = nExamples;
 
 	%% System selector
 	function system_selector(id_)
-		switch id_
+		switch id_			
 			case 1
 				nState		= 1;
 				tFinal		= 10;
-				fDynamics	= @my_lti1d;
-				filename_	= 'Data/lti1d';
+				fDynamics	= @lti1d_uncertainA;
+% 				filename_	= 'Data/lti1d_uncertain';
 			case 2
-				nState		= 2;
+				nState		= 1;
 				tFinal		= 10;
-				fDynamics	= @my_lti2d;
-				filename_	= 'Data/lti2d';
+				fDynamics	= @lti1d_uncertain_struct;
+% 				filename_	= 'Data/lti1d_uncertain_noise';
 			case 3
 				nState		= 2;
 				tFinal		= 10;
-				fDynamics	= @my_vanderpol;
-				filename_	= 'Data/vdp';
-			case 4
-				nState		= 2;
-				tFinal		= 10;
-				fDynamics	= @my_ipoc;
-				filename_	= 'Data/ipoc';
-			case 5
-				nState		= 2;
-				tFinal		= 10;
-				fDynamics	= @lti2d;
-				filename_	= 'Data/lti2d';
+				fDynamics	= @lti2d_uncertainA;
+% 				filename_	= 'Data/vdp';
+% 			case 5
+% 				nState		= 2;
+% 				tFinal		= 10;
+% 				fDynamics	= @my_ipoc;
+% 				filename_	= 'Data/ipoc';
+% 			case 6
+% 				nState		= 2;
+% 				tFinal		= 10;
+% 				fDynamics	= @lti2d;
+% 				filename_	= 'Data/lti2d';
 		end
 	end
 
@@ -127,36 +202,51 @@ nTrajToPlot = nExamples;
 	function parameter_selector(id_)
 		switch id_
 			case 1
-				x0			= -5 + 10*randn;
-				syspar_.a	= -5;
-				syspar_.q	= 0.01;
+				x0			= -5 + 10*rand;
+				syspar_.a	= -2 + 0.3*randn;
+				syspar_.Phi	= exp(syspar_.a*dt_);
 			case 2
-				syspar_.A	= [0 1; -5 -1];
+				x0			= -5 + 10*rand;
+				syspar_.a	= -2 + 0.3*randn;
+				syspar_.Phi	= exp(syspar_.a*dt_);
+				syspar_.wt	= 1E-2*randn(1, 4);
 			case 3
-				syspar_		= [];
-			case 4
-				syspar_		= [];
-			case 5
-				syspar_		= [];
+				x0			= -5 + 10*rand(2, 1);
+				syspar_.A	= [0 1; -5 -1] + [0 0; 0.1*randn 0.1*randn];
+				syspar_.Phi	= expm(syspar_.A*dt_);
+% 			case 5
+% 				syspar_		= [];
+% 			case 6
+% 				syspar_		= [];
+% 			case 7
+% 				syspar_		= [];
 		end
 	end
 	
 	%% Simulator
 	function my_simulator()	
 		xk			= x0;
-		xSim(:, 1)	= xk;
+		xSim(1, :)	= xk';
 		for k_ = 2:nDiscretization
-			xk			= fDynamics(xk);
+			xk		= fDynamics(xk);
 			xSim(k_, :)	= xk';
 		end
 	end
-	
-	%% LTI 1D
-	function xk1 = my_lti1d(xk)
-		xk1 = -syspar_.a*dt_*xk + sqrt(syspar_.q)*randn;
+
+	%% LTI 1D with uncertain time constant
+	function xk1 = lti1d_uncertainA(xk)
+		xk1 = syspar_.Phi*xk;
+	end
+
+	%% LTI 1D with uncertain time constant and structured additive uncertainty
+	function xk1 = lti1d_uncertain_struct(xk)
+		xk1 = syspar_.Phi*xk + syspar_.wt*[sin(xk); cos(xk); sin(2*xk); cos(2*xk)];
 	end
 	
-	%% LTI 2D
+	%% LTI 2D with uncertain A
+	function xk1 = lti2d_uncertainA(xk)
+		xk1 = syspar_.Phi*xk;
+	end
 	
 	%% LTI 
 
