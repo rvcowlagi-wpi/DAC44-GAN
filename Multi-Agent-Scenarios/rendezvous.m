@@ -40,10 +40,10 @@ function rendezvous()
 close all; clc;
 
 %% Simulation Options and Parameters
-WORKSPACE_SIZE		= 1;
-N_AGENTS			= 10;
+WORKSPACE_SIZE		= 1;													% Normalized to 1. Do not change unless there is a really, really good reason
+N_AGENTS			= 10;													% Number of agents
 MAX_COMMS_DISTANCE	= 0.5;													% Disk size for distance-based comms topology 
-DT_					= 1E-3;
+DT_					= 1E-3;													% Simulation time step, same as comms. time step
 MAX_TRUST_DISTANCE	= MAX_COMMS_DISTANCE*0.9;
 DTK_DELAY			= 2;													% Delay (in integer multiples of base time step DT_)
 
@@ -52,13 +52,13 @@ SIM_OPTIONS.commsDelay		= true;
 SIM_OPTIONS.commsTopology	= 'distance';									% Options: {'fixed', 'distance'}
 SIM_OPTIONS.duration		= 3;
 SIM_OPTIONS.dualScreen		= false;
-SIM_OPTIONS.makeVideo		= true;
-SIM_OPTIONS.saveData		= true;
-SIM_OPTIONS.loadInit		= true;
+SIM_OPTIONS.makeVideo		= false;
+SIM_OPTIONS.saveData		= false;
+SIM_OPTIONS.loadInit		= false;
 
 %% Control Parameters
 gainK = 3;
-controller_ = 'weighted';														% Options: {'plain', 'weighted'}
+controller_ = 'weighted';													% Options: {'plain', 'weighted'}
 
 %% Initialization
 
@@ -121,11 +121,15 @@ while (1)
 	fmStore(:, :, nIter)= friendship_;
 
 	t_	= t_ + DT_;
+	%----- Simulate a comms. delay: each agent gets the state from a
+	%	neighboring agent from a previous time step (nIter - DTK_DELAY)
 	if SIM_OPTIONS.commsDelay && (nIter > DTK_DELAY)
 		y_	= xStore(:, :, nIter - DTK_DELAY);
 	else
 		y_	= x_;
 	end
+
+	%----- Simulation termination condition
 	if t_ > SIM_OPTIONS.duration + 0.5*DT_
 		break;
 	end
