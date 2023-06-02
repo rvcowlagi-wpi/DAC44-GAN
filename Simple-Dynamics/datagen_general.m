@@ -29,34 +29,45 @@ dealings in the software.
 PROGRAM DESCRIPTION
 -------------------
 Large trajectory data generator for simple systems with process noise. This
-script generates a .mat file. See " " for writing .csv files from this
-dataset.
+script generates a .mat file. See "datawrite_general.m" for writing .csv
+files from this dataset.
 %}
 
 function datagen_general()
 close all; clc;
 
 %----- System
-[nState, tFinal, fDynamics, filename_] = system_selector(id_);
+id_			= 1;
+
+nState		= [];
+tFinal		= [];
+fDynamics	= [];
+filename_	= [];
+syspar_		= [];
+x0			= [];
+system_selector(id_);
 
 %----- Dataset characteristics
-nExamples		= 1;
-nDiscretization	= 100;
+nExamples		= 10;
+nDiscretization	= 100;														% Can be sampled down when writing to csv
 dataSize		= nDiscretization*nState;
+dt_				= tFinal / nDiscretization;									% Time step
 
 %---- Initialize
 trajectoryData = zeros(dataSize, nExamples);
 for m = 1:nExamples
-	xSim	= zeros(nState, nDiscretization);
+	xSim	= zeros(nDiscretization, nState);
+
+	parameter_selector(id_)
 	my_simulator()
 
-	x0	= -5 + 10*rand(n_state, 1);
-	A	= [0 1; -5 -1];
-
-	[~, xSim] = ode45(@(t,x) fDynamics, linspace(0, tFinal, nDiscretization), x0);
 	trajectoryData(:, m) = xSim(:);
 end
 tSim	= linspace(0, tFinal, nDiscretization);
+
+
+%% Plot a few trajectories
+nTrajToPlot = nExamples;
 
 % save(filename_,"tSim","trajectoryData")
 
@@ -81,8 +92,8 @@ tSim	= linspace(0, tFinal, nDiscretization);
 % 	writematrix(traj_k1, filename_ );
 % end
 
-	%% Selector
-	function [nState, tFinal, fDynamics, filename_] = system_selector(id_)
+	%% System selector
+	function system_selector(id_)
 		switch id_
 			case 1
 				nState		= 1;
@@ -111,6 +122,24 @@ tSim	= linspace(0, tFinal, nDiscretization);
 				filename_	= 'Data/lti2d';
 		end
 	end
+
+	%% Parameter selector
+	function parameter_selector(id_)
+		switch id_
+			case 1
+				x0			= -5 + 10*randn;
+				syspar_.a	= -5;
+				syspar_.q	= 0.01;
+			case 2
+				syspar_.A	= [0 1; -5 -1];
+			case 3
+				syspar_		= [];
+			case 4
+				syspar_		= [];
+			case 5
+				syspar_		= [];
+		end
+	end
 	
 	%% Simulator
 	function my_simulator()	
@@ -118,13 +147,13 @@ tSim	= linspace(0, tFinal, nDiscretization);
 		xSim(:, 1)	= xk;
 		for k_ = 2:nDiscretization
 			xk			= fDynamics(xk);
-			xSim(:, k)	= xk;
+			xSim(k_, :)	= xk';
 		end
 	end
 	
 	%% LTI 1D
 	function xk1 = my_lti1d(xk)
-		xk1 = -a*dt_*xk + randn;
+		xk1 = -syspar_.a*dt_*xk + sqrt(syspar_.q)*randn;
 	end
 	
 	%% LTI 2D
