@@ -47,13 +47,13 @@ id_			= 1;
 nState		= [];
 tFinal		= [];
 fDynamics	= [];
-filename_	= [];
+fileprefix	= [];
 syspar_		= [];
 x0			= [];
 system_selector(id_);
 
 %----- Dataset characteristics
-nExamples		= 1E5;
+nExamples		= 1E3;
 nDiscretization	= 100;														% Can be sampled down when writing to csv
 dataSize		= nDiscretization*nState;
 dt_				= tFinal / nDiscretization;									% Time step
@@ -71,22 +71,23 @@ end
 tSim	= linspace(0, tFinal, nDiscretization);
 
 %% Calculate distances among examples
-maxDistances_ = zeros(nExamples, 1);
+maxDistances = zeros(nExamples, 1);
 for m1 = 1:nExamples
 	tmp1 = zeros(1, nExamples);
 	for m2 = (m1 + 1):nExamples
 		tmp1(m2) = dt_ * ...	
 			sum( (trajectoryData(:, m1) - trajectoryData(:, m2)).^2 );
 	end
-	maxDistances_(m1) = max(tmp1(m1:end));
+	maxDistances(m1) = max(tmp1(m1:end));
 end
 
-similarityBenchmark = max(maxDistances_);
+similarityBenchmark = max(maxDistances);
 meanTrajectory		= sum(trajectoryData, 2) / nExamples;
 
-maxDistances		= max(maxDistances_, [], 2);
-
 histogram(maxDistances)
+
+filename_ = [fileprefix '_all.csv'];
+writematrix(trajectoryData, filename_)
 
 return
 
@@ -186,7 +187,7 @@ end
 				nState		= 1;
 				tFinal		= 10;
 				fDynamics	= @lti1d_uncertainA;
-% 				filename_	= 'Data/lti1d_uncertain';
+				fileprefix	= 'Data/lti1d_uncertainA';
 			case 2
 				nState		= 1;
 				tFinal		= 10;

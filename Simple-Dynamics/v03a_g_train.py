@@ -58,21 +58,9 @@ for epoch in range(nEpochs):
         lossRecordG.append(lossGFromRules.item())
         print(lossGFromRules.item())
 
-
+# ===== Save the trained model
 torch.save(modelG.state_dict(), 'simple_dynamics_generator.pt')
 
-# # for i, (test_traj) in enumerate(test_loader):
-# #     # Test with real examples from dataset
-# #     # print(traj)
-# #     inputs_test = test_traj.float()  # .to(device)
-# #     # inputs = np.array(inputs, dtype=np.float32)
-# #
-# #     y_d_test = modelD(inputs_test)
-# #
-# #     # Calculate error and backpropagate
-# #     #error_test = lossFcnG(y_d_test, ones_target(len(test_traj)))
-# #     #D_losses_test.append(error_test.item())
-# #     D_out_test.append(y_d_test.item())
 
 stopClock = time.time()
 elapsedHours = int((stopClock - start_clock) // 3600)
@@ -93,11 +81,11 @@ px = 1/plt.rcParams['figure.dpi']
 fig.set_figwidth(1800*px)
 fig.set_figheight(1500*px)
 modelG.to("cpu")
+
+z = torch.randn([10, model_setup.inputDimG])
+y = modelG(z)
 for m1 in range(0, n_plot_row):
     for m2 in range(0, n_plot_col):
-        z = torch.randn([my_batch_size, model_setup.inputDimG])
-        y = modelG(z)
-
         x1_plt = y[0][0:model_setup.nTimeStamps].detach().numpy()
         x2_plt = y[0][model_setup.nTimeStamps:nFeatures].detach().numpy()
         ax[m1, m2].plot(t, x1_plt)
@@ -110,8 +98,8 @@ for m1 in range(0, n_plot_row):
 # fig.set_figwidth(900*px)
 # fig.set_figheight(1500*px)
 # modelG.to("cpu")
-# for m1 in range(0, n_plot_row):
-#     for m2 in range(0, n_plot_col):
+# for m1 in range(0, npRow):
+#     for m2 in range(0, npCol):
 #         z = torch.randn([my_batch_size, inputDimG])
 #         y = modelG(z)
 #
