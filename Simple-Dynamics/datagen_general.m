@@ -53,7 +53,7 @@ x0			= [];
 system_selector(id_);
 
 %----- Dataset characteristics
-nExamples		= 1E3;
+nExamples		= 1E5;
 nDiscretization	= 100;														% Can be sampled down when writing to csv
 dataSize		= nDiscretization*nState;
 dt_				= tFinal / nDiscretization;									% Time step
@@ -71,32 +71,41 @@ end
 tSim	= linspace(0, tFinal, nDiscretization);
 
 %% Calculate distances among examples
-distances_ = zeros(nExamples);
+maxDistances_ = zeros(nExamples, 1);
 for m1 = 1:nExamples
-	for m2 = m1:nExamples
-		distances_(m1, m2) = dt_ * ...
+	tmp1 = zeros(1, nExamples);
+	for m2 = (m1 + 1):nExamples
+		tmp1(m2) = dt_ * ...	
 			sum( (trajectoryData(:, m1) - trajectoryData(:, m2)).^2 );
 	end
+	maxDistances_(m1) = max(tmp1(m1:end));
 end
-distances_ = distances_ + distances_';
 
-similarityBenchmark = max(distances_(:));
+similarityBenchmark = max(maxDistances_);
+meanTrajectory		= sum(trajectoryData, 2) / nExamples;
 
-%---- Take a new sample trajectory
-xSim	= zeros(nDiscretization, nState);
-parameter_selector(id_)
-my_simulator()
-newExample = xSim(:);
+maxDistances		= max(maxDistances_, [], 2);
 
-%---- Calculate distance
-dNewToLibrary = zeros(1, nExamples);
-for m1 = 1:nExamples
-	dNewToLibrary(m1) = dt_ * ...
-			sum( (trajectoryData(:, m1) - newExample).^2 );
-end
-maxDNew = max(dNewToLibrary);
+histogram(maxDistances)
 
-isSimilar = (maxDNew <= similarityBenchmark)
+return
+
+%% Sanity check
+% %---- Take a new sample trajectory
+% xSim	= zeros(nDiscretization, nState);
+% parameter_selector(id_)
+% my_simulator()
+% newExample = xSim(:);
+% 
+% %---- Calculate distance
+% dNewToLibrary = zeros(1, nExamples);
+% for m1 = 1:nExamples
+% 	dNewToLibrary(m1) = dt_ * ...
+% 			sum( (trajectoryData(:, m1) - newExample).^2 );
+% end
+% maxDNew = max(dNewToLibrary);
+% 
+% isSimilar = (maxDNew <= similarityBenchmark)
 
 %% Plot a few trajectories
 nTrajToPlot = randperm(nExamples, 10);
@@ -126,11 +135,14 @@ myFont		= 'Times New Roman';
 % firstframeName	= ['Results/202305/rendezvous_' controller_ '_run' nowText '.png'];
 
 
-for m1 = nTrajToPlot
-	for m2 = 1:nState
+for m2 = 1:nState
+	thisMean	= meanTrajectory((1 + (m2 - 1)*nDiscretization):(m2*nDiscretization));
+	subplot(nState, 1, m2); 
+	for m1 = nTrajToPlot
 		thisState = trajectoryData((1 + (m2 - 1)*nDiscretization):(m2*nDiscretization), m1);
-		subplot(nState, 1, m2); plot(tSim, thisState); hold on; grid on;
+		plot(tSim, thisState); hold on; grid on;
 	end
+	plot(tSim, thisMean, 'LineWidth', 3)
 end
 
 for m2 = 1:nState
@@ -203,16 +215,16 @@ end
 		switch id_
 			case 1
 				x0			= -5 + 10*rand;
-				syspar_.a	= -2 + 0.3*randn;
+				syspar_.a	= -2 + 0.5*randn;
 				syspar_.Phi	= exp(syspar_.a*dt_);
 			case 2
-				x0			= -5 + 10*rand;
-				syspar_.a	= -2 + 0.3*randn;
+				x0			= 10*rand; %-5 + 10*rand;
+				syspar_.a	= -2 + 0.5*randn;
 				syspar_.Phi	= exp(syspar_.a*dt_);
 				syspar_.wt	= 1E-2*randn(1, 4);
 			case 3
-				x0			= -5 + 10*rand(2, 1);
-				syspar_.A	= [0 1; -5 -1] + [0 0; 0.1*randn 0.1*randn];
+				x0			= 10*rand(2,1); %-5 + 10*rand(2, 1);
+				syspar_.A	= [0 1; -5 -1] + [0 0; 1.5*randn 0.3*randn];
 				syspar_.Phi	= expm(syspar_.A*dt_);
 % 			case 5
 % 				syspar_		= [];

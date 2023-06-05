@@ -6,155 +6,16 @@ from torch.autograd.variable import Variable
 import matplotlib.pyplot as plt
 import time
 from datetime import datetime
+import model_setup
+
 
 
 device = "cuda"
 
 start_clock = time.time()
 
-n_features = 200
+n_features = model_setup.nFeatures
 my_batch_size = 1
-
-# ----- Create generator model class
-# --- Worked for straight line
-# input_dimG = 25
-# dimG_1 = 32
-# dimG_2 = 64
-# dimG_3 = 256
-# dimG_4 = 1024
-# dimG_5 = 256
-# dimG_6 = 64
-# class Generator(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.layers = nn.Sequential(
-#             nn.Linear(input_dimG, dimG_1),  # input layer
-#             nn.ReLU(),
-#             nn.Linear(dimG_1, dimG_2),  # hidden layer 1
-#             nn.ReLU(),
-#             nn.Linear(dimG_2, dimG_3),  # hidden layer 2
-#             nn.ReLU(),
-#             nn.Linear(dimG_3, dimG_4),  # hidden layer 3
-#             nn.ReLU(),
-#             nn.Linear(dimG_4, dimG_5),  # hidden layer 4
-#             nn.ReLU(),
-#             nn.Linear(dimG_5, dimG_6),  # hidden layer 5
-#             nn.ReLU(),
-#             nn.Linear(dimG_6, n_features)  # output layer
-#         )
-#
-#     def forward(self, x):
-#         return self.layers(x)
-
-# --- Somewhat worked for x1_dot and x2_dot
-input_dimG = 100
-dimG_1 = 256
-dimG_2 = 512
-dimG_3 = 1024
-dimG_4 = 2048
-dimG_5 = 4096
-dimG_6 = 2048
-dimG_7 = 1024
-dimG_8 = 512
-dimG_9 = 256
-dimG_10= 256
-class Generator(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.layers = nn.Sequential(
-            nn.Linear(input_dimG, dimG_1),  # input layer
-            nn.ELU(),
-            nn.Linear(dimG_1, dimG_2),  # hidden layer 1
-            nn.ELU(),
-            nn.Linear(dimG_2, dimG_3),  # hidden layer 2
-            nn.ELU(),
-            nn.Linear(dimG_3, dimG_4),  # hidden layer 3
-            nn.ELU(),
-            nn.Linear(dimG_4, dimG_5),  # hidden layer 4
-            nn.ELU(),
-            nn.Linear(dimG_5, dimG_5),  # hidden layer 5
-            nn.ELU(),
-            nn.Linear(dimG_5, dimG_6),  # hidden layer 5
-            nn.ELU(),
-            nn.Linear(dimG_6, dimG_6),  # hidden layer 6
-            nn.ELU(),
-            nn.Linear(dimG_6, dimG_7),  # hidden layer 7
-            nn.ELU(),
-            nn.Linear(dimG_7, dimG_8),  # hidden layer 8
-            nn.ELU(),
-            nn.Linear(dimG_8, dimG_9),  # hidden layer 9
-            nn.ELU(),
-            nn.Linear(dimG_9, dimG_10),  # hidden layer 10
-            nn.ELU(),
-            nn.Linear(dimG_10, n_features)  # output layer
-        )
-
-    def forward(self, x):
-        return self.layers(x)
-
-
-
-
-
-
-
-
-# # Somewhat worked for x1_dot and x2_dot
-# input_dimG = 100
-# dimG_1 = 256
-# dimG_2 = 512
-# dimG_3 = 1024
-# dimG_4 = 2048
-# dimG_5 = 4096
-# dimG_6 = 2048
-# dimG_7 = 1024
-# dimG_8 = 512
-# dimG_9 = 256
-# dimG_10= 256
-# class Generator(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.layers = nn.Sequential(
-#             nn.Linear(input_dimG, dimG_1),  # input layer
-#             nn.ReLU(),
-#             nn.Linear(dimG_1, dimG_2),  # hidden layer 1
-#             nn.ReLU(),
-#             nn.Linear(dimG_2, dimG_3),  # hidden layer 2
-#             nn.ReLU(),
-#             nn.Linear(dimG_3, dimG_4),  # hidden layer 3
-#             nn.ReLU(),
-#             nn.Linear(dimG_4, dimG_5),  # hidden layer 4
-#             nn.ReLU(),
-#             nn.Linear(dimG_5, dimG_5),  # hidden layer 5
-#             nn.ReLU(),
-#             nn.Linear(dimG_5, dimG_5),  # hidden layer 6
-#             nn.ReLU(),
-#             nn.Linear(dimG_5, dimG_6),  # hidden layer 7
-#             nn.ReLU(),
-#             nn.Linear(dimG_6, dimG_6),  # hidden layer 8
-#             nn.ReLU(),
-#             nn.Linear(dimG_6, dimG_6),  # hidden layer 9
-#             nn.ReLU(),
-#             nn.Linear(dimG_6, dimG_7),  # hidden layer 10
-#             nn.ReLU(),
-#             nn.Linear(dimG_7, dimG_7),  # hidden layer 11
-#             nn.ReLU(),
-#             nn.Linear(dimG_7, dimG_8),  # hidden layer 12
-#             nn.ReLU(),
-#             nn.Linear(dimG_8, dimG_9),  # hidden layer 13
-#             nn.ReLU(),
-#             nn.Linear(dimG_9, dimG_10),  # hidden layer 14
-#             nn.ReLU(),
-#             nn.Linear(dimG_10, n_features)  # output layer
-#         )
-#
-#     def forward(self, x):
-#         return self.layers(x)
-
-
 
 
 # # Continuity rules discrominator
@@ -178,13 +39,6 @@ class Generator(nn.Module):
 
 
 # Straight line rules discriminator
-tmp1 = torch.arange(0, n_features, 1).to(device)
-tmp2 = torch.ones(n_features).to(device)
-C = torch.vstack((tmp1, tmp2))
-C = torch.transpose(C, 0, 1)
-def StraightLineRulesD(y_):
-    x_ = torch.linalg.lstsq(C, y_).solution
-    return torch.norm( y_ - torch.matmul(C, x_))
 
 
 # n_time = round(n_features/2)
@@ -219,22 +73,6 @@ def StraightLineRulesD(y_):
 
 
 
-n_time = round(n_features/2)
-dt = 0.1
-def LyapnuovRulesD1(y_):
-    x1_ = y_[0:n_time]
-    x2_ = y_[n_time:n_features]
-
-    pen1 = torch.zeros([n_features,1]).to(device)  # this is just for proper sizing
-
-    # pen1[0] = 0.1*(x1_[0] - 1)
-    # pen1[n_time] = 0.1*(x2_[0] - 3)
-    for m in range(1, n_time, 1):
-        pen1[m] = 30*(10*(x1_[m] - x1_[m - 1]) - x2_[m-1])
-        pen1[m + n_time] = 30*(10*(x2_[m] - x2_[m - 1]) + 5*x1_[m-1])
-
-
-    return pen1
 
 
 
@@ -286,50 +124,6 @@ for epoch in range(n_epochs):
         G_losses.append(errorG2.item())
         print(errorG2.item())
 
-        # if (epoch > 10) and abs(G_losses[epoch] - G_losses[epoch-1]) < 1E-4:
-        #     break
-
-        # #y_d_fakeG = modelD(y_gG)  # Since we just updated D, perform another forward pass of all-fake batch through D
-        #
-        # # solution_found, slope_check = RulesDiscriminator(y_gG.reshape([100, 1]))
-
-        # print(error_of_d2)
-
-
-        # torch.tensor(solution_found, dtype=torch.int)
-        # print(solution_found)
-        # if solution_found == 1:
-        #     d2 = 0
-        # else:
-        #     d2 = 1
-        #     error_of_d2 = slope_check.detach()  # 0.1
-        # Using D2
-        # print(y_gG.size())
-
-
-        # Calculate error and backpropagate """
-        #print(y_d_fakeG.size())
-        #error_of_d2.reshape([1, 1])
-        #print(error_of_d2.size())
-        # errorG = loss_dg(y_d_fakeG, ones_target(my_batch_size))
-
-        # error_gd1d2 = (w1 * errorG) + (w2 * errorG2)
-
-
-
-        # loss = criterion(inputs, y_gG)  # Difference between real and fake trajectory points
-
-
-
-        # D_out_test.append(y_d_fakeG.item())
-        # rules_out.append(solution_found)
-        # D_losses.append(errorD.item())
-        # D_losses.append(error_of_d2.item())
-
-        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
-        #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
-        #     Disc_percentage = torch.mean(y_d_fakeG)
-        #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
 
 
 # # for i, (test_traj) in enumerate(test_loader):
@@ -383,7 +177,7 @@ for m1 in range(0, n_plot_row):
 # modelG.to("cpu")
 # for m1 in range(0, n_plot_row):
 #     for m2 in range(0, n_plot_col):
-#         z = torch.randn([my_batch_size, input_dimG])
+#         z = torch.randn([my_batch_size, inputDimG])
 #         y = modelG(z)
 #
 #         x1_plt = y[0].detach().numpy()

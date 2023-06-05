@@ -230,12 +230,12 @@ for epoch in range(n_epochs):
         #optimizerD.step()
 
         # # Train with fake examples from generator
-        z = torch.randn([my_batch_size, input_dimG])  # torch.distributions.uniform.Uniform(-10, 10).sample([my_batch_size, input_dimG]).to(device)  # latent vector
+        z = torch.randn([my_batch_size, input_dimG])  # torch.distributions.uniform.Uniform(-10, 10).sample([my_batch_size, inputDimG]).to(device)  # latent vector
         y_g = modelG(z)
         y_d_fake = modelD(y_g)
         error_fake = loss_dg(y_d_fake, zeros_target(my_batch_size))
 
-        #z2 = torch.distributions.uniform.Uniform(-10, 10).sample([my_batch_size, input_dimG]).to(device)  # latent vector
+        #z2 = torch.distributions.uniform.Uniform(-10, 10).sample([my_batch_size, inputDimG]).to(device)  # latent vector
         #y_g2 = modelG(z2)
         #y_d_fake2 = modelD(y_g2)
         solution_found, slope_check = setofrules(inputs.reshape([100, 1]))
@@ -264,7 +264,7 @@ for epoch in range(n_epochs):
         # modelG.zero_grad()
         # optimizerG.zero_grad()
         #
-        # z = torch.distributions.uniform.Uniform(-1, 1).sample([my_batch_size, input_dimG]).to(device)  # latent vector
+        # z = torch.distributions.uniform.Uniform(-1, 1).sample([my_batch_size, inputDimG]).to(device)  # latent vector
         # y_gG = modelG(z)
         # y_d_fakeG = modelD(y_gG)  # Since we just updated D, perform another forward pass of all-fake batch through D
         #
@@ -329,7 +329,7 @@ print('\nElapsed time ' + str(elapsed_hours) + ':' + str(elapsed_minutes) + ':' 
 # fig.set_figheight(1100*px)
 # for m1 in range(0, 5):
 #     for m2 in range(0, 2):
-#         z = torch.distributions.uniform.Uniform(-1, 1).sample([1, input_dimG]).to(device)
+#         z = torch.distributions.uniform.Uniform(-1, 1).sample([1, inputDimG]).to(device)
 #         y = modelG(z).to("cpu")
 #
 #         y_plt = y[0].detach().numpy()
