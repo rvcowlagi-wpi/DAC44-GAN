@@ -36,6 +36,6 @@ for m1 in range(0, nGSample):
 nTestData = 10
 
 # ===== Calculate sample distances to test data (similarity)
-for m1 in range(0, nGSample):
-    for m2 in range(0, nTestData):
-        ell2_distance(yGen[m1].detach().numpy(), yTest)
+# for m1 in range(0, nGSample):
+#     for m2 in range(0, nTestData):
+#         ell2_distance(yGen[m1].detach().numpy(), yTest)

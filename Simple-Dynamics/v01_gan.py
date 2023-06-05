@@ -129,7 +129,7 @@ class Discriminator(nn.Module):
 
 
 # STEP 4: Instantiate generator and discriminator classes
-# These numbers are set up for n_features = 100
+# These numbers are set up for nFeatures = 100
 input_dimG = 20
 modelG = Generator(input_dimG, 32, 32, 64, 64, n_traj_pts)
 modelD = Discriminator(n_traj_pts, 64, 32, 16, 1)
@@ -236,8 +236,8 @@ for epoch in range(n_epochs):
         G_losses.append(errorG.item())
         D_losses.append(errorD.item())
 
-        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
-        #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
+        # if nIter == (len(train_loader.dataset) / nFeatures) * nEpochs:  # i % 5 == 0:
+        #     print('Iteration: {}. Loss: {}'.format(nIter, abs(loss.item())))
         #     Disc_percentage = torch.mean(y_d_fakeG)
         #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
 
@@ -264,13 +264,13 @@ for m1 in range(0, 5):
         ax[m1, m2].plot(t, y_plt)
 
 
-# figname_ = "Results/2023-01-14-LTI/lti_1d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset) // n_features) + "_pt" + str(n_features) + ".png"
-# figname_ = "Results/2023-01-14-LTI/lti_2d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset)) + "_pt" + str(n_features) + ".png"
+# figName = "Results/2023-01-14-LTI/lti_1d_ep" + str(nEpochs) + "_ex" + \
+#            str(len(train_loader.dataset) // nFeatures) + "_pt" + str(nFeatures) + ".png"
+# figName = "Results/2023-01-14-LTI/lti_2d_ep" + str(nEpochs) + "_ex" + \
+#            str(len(train_loader.dataset)) + "_pt" + str(nFeatures) + ".png"
 
 
-# fig.savefig(figname_, bbox_inches='tight')
+# fig.savefig(figName, bbox_inches='tight')
 #
 
 fig2 = plt.figure()

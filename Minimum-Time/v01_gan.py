@@ -212,8 +212,8 @@ for epoch in range(n_epochs):
         G_losses.append(errorG.item())
 
 
-        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
-        #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
+        # if nIter == (len(train_loader.dataset) / nFeatures) * nEpochs:  # i % 5 == 0:
+        #     print('Iteration: {}. Loss: {}'.format(nIter, abs(loss.item())))
         #     Disc_percentage = torch.mean(y_d_fakeG)
         #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
 
@@ -257,11 +257,11 @@ for m1 in range(0, 3):
         # ax1[m1, m2].plot(x_term[0], x_term[1], marker="s", markersize=5)
         # ax1[m1, m2].axis('equal')
 
-# figname_ = "Results/2023-01-14-LTI/lti_1d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset) // n_features) + "_pt" + str(n_features) + ".png"
-# figname_ = "Results/2023-01-14-LTI/lti_2d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset)) + "_pt" + str(n_features) + ".png"
-# fig1.savefig(figname_, bbox_inches='tight')
+# figName = "Results/2023-01-14-LTI/lti_1d_ep" + str(nEpochs) + "_ex" + \
+#            str(len(train_loader.dataset) // nFeatures) + "_pt" + str(nFeatures) + ".png"
+# figName = "Results/2023-01-14-LTI/lti_2d_ep" + str(nEpochs) + "_ex" + \
+#            str(len(train_loader.dataset)) + "_pt" + str(nFeatures) + ".png"
+# fig1.savefig(figName, bbox_inches='tight')
 
 
 fig2 = plt.figure()

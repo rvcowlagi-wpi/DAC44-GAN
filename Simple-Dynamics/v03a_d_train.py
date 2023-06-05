@@ -147,7 +147,7 @@ def setofrules(y_gen):
 # def main():
 
 # STEP 4: Instantiate generator and discriminator classes
-# These numbers are set up for n_features = 100
+# These numbers are set up for nFeatures = 100
 input_dimG = 20
 modelG = Generator(input_dimG, 32, 32, 64, 64, n_traj_pts)
 modelD = Discriminator(n_traj_pts, 64, 32, 16, 1)
@@ -242,18 +242,18 @@ for epoch in range(n_epochs):
         torch.tensor(solution_found, dtype=torch.int)
         if solution_found == 1:
             d2 = 0
-            # error_of_d2 = slope_check.detach()
+            # rulesScore = slope_check.detach()
         else:
              d2 = 1
              error_of_d2 = slope_check.detach()  # 0.1
         # Calculate error and backpropagate
-        #error_fake2 = loss_dg(y_d_fake2, zeros_target(my_batch_size))
+        #error_fake2 = lossFcnG(y_d_fake2, zeros_target(my_batch_size))
         #err = torch.tensor([error_fake, error_fake2])
         # error_fake2.backward()
         # optimizerD.step()
         # Compute error of D as sum over the fake and the real batches"""
         errorD = error_fake + error_real
-        #error_of_d2.backward()
+        #rulesScore.backward()
         errorD.backward()
 
         # Update D
@@ -273,8 +273,8 @@ for epoch in range(n_epochs):
 
         #
         # # Calculate error and backpropagate """
-        # errorG = loss_dg(y_d_fakeG, ones_target(my_batch_size))
-        # error_gd1d2 = (w1 * errorG) # + (w2 * error_of_d2)
+        # errorG = lossFcnG(y_d_fakeG, ones_target(my_batch_size))
+        # error_gd1d2 = (w1 * errorG) # + (w2 * rulesScore)
         # error_gd1d2.backward()
         # # # # Update G
         # optimizerG.step()
@@ -283,13 +283,13 @@ for epoch in range(n_epochs):
 
         n_iter += 1
         # Save Losses for plotting later
-        # G_losses.append(errorG.item())
+        # lossRecordG.append(errorG.item())
         D_losses.append(errorD.item())
         rules_out.append(solution_found)
-        #D_losses.append(error_of_d2)
+        #D_losses.append(rulesScore)
 
-        # if n_iter == (len(train_loader.dataset) / n_features) * n_epochs:  # i % 5 == 0:
-        #     print('Iteration: {}. Loss: {}'.format(n_iter, abs(loss.item())))
+        # if nIter == (len(train_loader.dataset) / nFeatures) * nEpochs:  # i % 5 == 0:
+        #     print('Iteration: {}. Loss: {}'.format(nIter, abs(loss.item())))
         #     Disc_percentage = torch.mean(y_d_fakeG)
         #     print('Discriminator output: this is {} % real'.format(100 - (Disc_percentage.item() * 100)))
 
@@ -310,7 +310,7 @@ for i, (test_traj) in enumerate(test_loader):
     y_d_test = modelD(inputs_test)
 
     # Calculate error and backpropagate
-    #error_test = loss_dg(y_d_test, ones_target(len(test_traj)))
+    #error_test = lossFcnG(y_d_test, ones_target(len(test_traj)))
     #D_losses_test.append(error_test.item())
     D_out_test.append(y_d_test.item())
 stop_clock = time.time()
@@ -321,7 +321,7 @@ elapsed_seconds = (stop_clock - start_clock) - elapsed_hours*3600 - elapsed_minu
 print('\nElapsed time ' + str(elapsed_hours) + ':' + str(elapsed_minutes) + ':' + "%.2f" % elapsed_seconds)
 
 # # STEP 8: Plot a few sample generator results
-# t = torch.linspace(0, 10, n_features).to("cpu")
+# t = torch.linspace(0, 10, nFeatures).to("cpu")
 # fig, ax = plt.subplots(5, 2)
 #
 # px = 1/plt.rcParams['figure.dpi']
@@ -339,13 +339,13 @@ print('\nElapsed time ' + str(elapsed_hours) + ':' + str(elapsed_minutes) + ':' 
         # plt.legend(["Generated", "Actual"])
 
 
-# figname_ = "Results/2023-01-14-LTI/lti_1d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset) // n_features) + "_pt" + str(n_features) + ".png"
-# figname_ = "Results/2023-01-14-LTI/lti_2d_ep" + str(n_epochs) + "_ex" + \
-#            str(len(train_loader.dataset)) + "_pt" + str(n_features) + ".png"
+# figName = "Results/2023-01-14-LTI/lti_1d_ep" + str(nEpochs) + "_ex" + \
+#            str(len(train_loader.dataset) // nFeatures) + "_pt" + str(nFeatures) + ".png"
+# figName = "Results/2023-01-14-LTI/lti_2d_ep" + str(nEpochs) + "_ex" + \
+#            str(len(train_loader.dataset)) + "_pt" + str(nFeatures) + ".png"
 
 
-# fig.savefig(figname_, bbox_inches='tight')
+# fig.savefig(figName, bbox_inches='tight')
 #
 
 # fig2 = plt.figure()

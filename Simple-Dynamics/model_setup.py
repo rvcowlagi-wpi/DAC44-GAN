@@ -2,9 +2,13 @@
 import torch
 import torch.nn as nn
 
+# ===== Problem size
+nFeatures = 200
+nTimeStamps = 100
+dt_ = 0.1
+
 # ========== Multi-layer generator model
 # ===== Generator model size
-nFeatures = 200
 inputDimG = 100
 dimG1 = 256
 dimG2 = 512
@@ -69,18 +73,14 @@ def rules_d_straight_line(y_, device):
 
 
 # =========== Rules discriminator: LTI state model
-n_time = round(nFeatures / 2)
-dt = 0.1
-
-
 def rules_d_state1(y_, device):
-    x1_ = y_[0:n_time]
-    x2_ = y_[n_time:nFeatures]
+    x1_ = y_[0:nTimeStamps]
+    x2_ = y_[nTimeStamps:nFeatures]
 
     penalty_ = torch.zeros([nFeatures, 1]).to(device)  # this is just for proper sizing
 
-    for m in range(1, n_time, 1):
+    for m in range(1, nTimeStamps, 1):
         penalty_[m] = 30 * (10 * (x1_[m] - x1_[m - 1]) - x2_[m - 1])
-        penalty_[m + n_time] = 30 * (10 * (x2_[m] - x2_[m - 1]) + 5 * x1_[m - 1])
+        penalty_[m + nTimeStamps] = 30 * (10 * (x2_[m] - x2_[m - 1]) + 5 * x1_[m - 1])
 
     return penalty_
