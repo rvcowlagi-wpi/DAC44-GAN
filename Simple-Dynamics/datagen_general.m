@@ -87,7 +87,7 @@ meanTrajectory		= sum(trajectoryData, 2) / nExamples;
 histogram(maxDistances)
 
 filename_ = [fileprefix '_all.csv'];
-writematrix(trajectoryData, filename_)
+writematrix(trajectoryData', filename_)
 
 return
 

@@ -36,26 +36,31 @@ for m1 in range(0, nGSample):
 
 
 # ===== Plot a few sample G outputs
-npRow = 5
-npCol = 2
-timePlot = torch.linspace(0, 10, model_setup.nTimeStamps).to("cpu")
-px = 1/plt.rcParams['figure.dpi']
-fig, ax = plt.subplots(npRow, npCol)
-fig.set_figwidth(1800*px)
-fig.set_figheight(1500*px)
-modelG.to("cpu")
-for m1 in range(0, npRow):
-    for m2 in range(0, npCol):
-        x1_plt = yGen[m1 * npCol + m2][0:model_setup.nTimeStamps].detach().numpy()
-        x2_plt = yGen[m1 * npCol + m2][model_setup.nTimeStamps:model_setup.nFeatures].detach().numpy()
-        ax[m1, m2].plot(timePlot, x1_plt)
-        ax[m1, m2].plot(timePlot, x2_plt)
-
-plt.show()
+# npRow = 5
+# npCol = 2
+# timePlot = torch.linspace(0, 10, model_setup.nTimeStamps).to("cpu")
+# px = 1/plt.rcParams['figure.dpi']
+# fig, ax = plt.subplots(npRow, npCol)
+# fig.set_figwidth(1800*px)
+# fig.set_figheight(1500*px)
+# modelG.to("cpu")
+# for m1 in range(0, npRow):
+#     for m2 in range(0, npCol):
+#         x1_plt = yGen[m1 * npCol + m2][0:model_setup.nTimeStamps].detach().numpy()
+#         x2_plt = yGen[m1 * npCol + m2][model_setup.nTimeStamps:model_setup.nFeatures].detach().numpy()
+#         ax[m1, m2].plot(timePlot, x1_plt)
+#         ax[m1, m2].plot(timePlot, x2_plt)
+#
+# plt.show()
 
 
 # ===== Load examples from test data
 nTestData = 10
+testDataset = np.genfromtxt('Data/lti1d_uncertainA_all.csv', delimiter=',')
+print(np.size(testDataset, 0))
+print(np.size(testDataset, 1))
+
+print(testDataset[0])
 
 # ===== Calculate sample distances to test data (similarity)
 # for m1 in range(0, nGSample):

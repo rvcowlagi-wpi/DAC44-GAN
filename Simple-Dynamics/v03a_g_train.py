@@ -10,7 +10,7 @@ import model_setup
 
 
 # ===== Initialize
-device = "cuda"
+device = "cpu"
 start_clock = time.time()
 
 nFeatures = model_setup.nFeatures
@@ -24,7 +24,7 @@ learningRateG = 2E-4
 optimizerG = torch.optim.Adam(modelG.parameters(), lr=learningRateG)
 
 # ===== Initialize training
-nEpochs = 1000
+nEpochs = 100
 nIter = 0
 lossRecordG = []
 
@@ -118,6 +118,6 @@ for m1 in range(0, n_plot_row):
 
 ts = (np.datetime64(datetime.utcnow()) - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
 figName = "Results/202305/rules_only_" + str(round(ts)) + ".png"
-fig.savefig(figName, bbox_inches='tight')
+# fig.savefig(figName, bbox_inches='tight')
 
 plt.show()
