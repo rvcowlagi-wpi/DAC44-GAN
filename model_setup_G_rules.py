@@ -121,37 +121,6 @@ def rules_d_state1(y_, device):
     return penalty_
 
 
-# # =========== train to decrease Lyapunov function
-# def lyapunov_function(y_, device):
-#     x = torch.Tensor(y_)
-#     # x = torch.reshape(x, (200, 1))
-#     # # print(x)
-#     # t = torch.arange(1, 10.1, 0.1)
-#     p = torch.randn(200, 200)
-#     p = torch.mm(p, p.t())
-#     x_transpose = torch.transpose(x, 0, 1)
-#     # # print(x_transpose.size())
-#     lyap_1 = torch.matmul(x_transpose, p)
-#     lyap_ = torch.matmul(lyap_1, x)
-#     # # print(lyap_)
-#     # lyap_.requires_grad = True
-#     # lyap_.backward
-#     return lyap_
 
 
-# =========== train to decrease Lyapunov function
-def lyapunov_function(y_, device):
 
-    x1 = y_[0:nTimeStamps]
-    x2 = y_[nTimeStamps:nFeatures]
-    v = torch.zeros([100, 1])
-    penalty_lyp = torch.zeros([100, 1]).to(device)
-
-    #---- v is the precalculated lyapunov candidae function x'Px
-    for m in range(1, nTimeStamps, 1):
-        v[m] = 2.9566 * (x1[m]**2) + 1.7664 * (x1[m]*x2[m]) + 3.3087 * (x2[m]**2)
-        penalty_lyp[m] = ((v[m]-v[m-1])+abs(v[m]-v[m-1]))
-        print('value', v[m]-v[m-1])
-        print('penalty', penalty_lyp[m])
-
-    return penalty_lyp
