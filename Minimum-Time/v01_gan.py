@@ -119,18 +119,18 @@ optimizerG = torch.optim.SGD(modelG.parameters(), lr=learning_rate_gen)
 # Readout layer size ; the size of out output
 
 # print('\nGenerator:')
-# print('\t length of model', len(list(modelG.parameters())))
-# print('\t first layer parameter', list(modelG.parameters())[0].size())
-# print('\t first layer bias', list(modelG.parameters())[1].size())
-# print('\t second layer parameter', list(modelG.parameters())[2].size())
-# print('\t second layer bias', list(modelG.parameters())[3].size())
+# print('\t length of model', len(list(theDecoder.parameters())))
+# print('\t first layer parameter', list(theDecoder.parameters())[0].size())
+# print('\t first layer bias', list(theDecoder.parameters())[1].size())
+# print('\t second layer parameter', list(theDecoder.parameters())[2].size())
+# print('\t second layer bias', list(theDecoder.parameters())[3].size())
 #
 # print('\nDiscriminator: ')
-# print('\t length of model', len(list(modelD.parameters())))
-# print('\t first layer parameter', list(modelD.parameters())[0].size())
-# print('\t first layer bias', list(modelD.parameters())[1].size())
-# print('\t second layer parameter', list(modelD.parameters())[2].size())
-# print('\t second layer bias', list(modelD.parameters())[3].size())
+# print('\t length of model', len(list(theDiscriminator.parameters())))
+# print('\t first layer parameter', list(theDiscriminator.parameters())[0].size())
+# print('\t first layer bias', list(theDiscriminator.parameters())[1].size())
+# print('\t second layer parameter', list(theDiscriminator.parameters())[2].size())
+# print('\t second layer bias', list(theDiscriminator.parameters())[3].size())
 
 # STEP 7: Train the GAN
 
@@ -204,7 +204,7 @@ for epoch in range(n_epochs):
         # # Update G
         optimizerG.step()
         #
-        # loss = criterion(inputs, y_gG)  # Difference between real and fake trajectory points
+        # loss = criterion(zReal, yGenerator)  # Difference between real and fake trajectory points
 
         n_iter += 1
 

@@ -25,7 +25,7 @@ modelG.load_state_dict(torch.load('simple_dynamics_generator.pt'))
 
 # ===== Generate several sample outputs
 nGSample = 10
-zLatent = torch.randn([nGSample, model_setup.inputDimG])
+zLatent = torch.randn([nGSample, model_setup.dimGenInput])
 yGen = modelG(zLatent)
 
 
@@ -43,13 +43,13 @@ for m1 in range(0, nGSample):
 # fig, ax = plt.subplots(npRow, npCol)
 # fig.set_figwidth(1800*px)
 # fig.set_figheight(1500*px)
-# modelG.to("cpu")
+# theDecoder.to("cpu")
 # for m1 in range(0, npRow):
 #     for m2 in range(0, npCol):
-#         x1_plt = yGen[m1 * npCol + m2][0:model_setup.nTimeStamps].detach().numpy()
-#         x2_plt = yGen[m1 * npCol + m2][model_setup.nTimeStamps:model_setup.nFeatures].detach().numpy()
-#         ax[m1, m2].plot(timePlot, x1_plt)
-#         ax[m1, m2].plot(timePlot, x2_plt)
+#         x1Plot = yGen[m1 * npCol + m2][0:model_setup.nTimeStamps].detach().numpy()
+#         x2Plot = yGen[m1 * npCol + m2][model_setup.nTimeStamps:model_setup.nFeatures].detach().numpy()
+#         ax[m1, m2].plot(timePlot, x1Plot)
+#         ax[m1, m2].plot(timePlot, x2Plot)
 #
 # plt.show()
 

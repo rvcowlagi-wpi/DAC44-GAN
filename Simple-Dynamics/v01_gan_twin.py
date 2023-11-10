@@ -34,7 +34,7 @@ n_traj_pts = 100
 my_batch_size = 1
 
 data_1d = np.array(pd.read_csv('Data/data_1d.txt'))
-# data_2d = np.array(pd.read_csv('Data/data_2d.txt'))
+# data2D = np.array(pd.read_csv('Data/data2D.txt'))
 
 #dataset = torch.utils.data.TensorDataset(torch.Tensor(data_1d))
 train_loader = torch.utils.data.DataLoader(data_1d, batch_size=my_batch_size)
@@ -165,18 +165,18 @@ optimizerG = torch.optim.SGD(modelG.parameters(), lr=learning_rate_gen)
 # Readout layer size ; the size of out output
 
 # print('\nGenerator:')
-# print('\t length of model', len(list(modelG.parameters())))
-# print('\t first layer parameter', list(modelG.parameters())[0].size())
-# print('\t first layer bias', list(modelG.parameters())[1].size())
-# print('\t second layer parameter', list(modelG.parameters())[2].size())
-# print('\t second layer bias', list(modelG.parameters())[3].size())
+# print('\t length of model', len(list(theDecoder.parameters())))
+# print('\t first layer parameter', list(theDecoder.parameters())[0].size())
+# print('\t first layer bias', list(theDecoder.parameters())[1].size())
+# print('\t second layer parameter', list(theDecoder.parameters())[2].size())
+# print('\t second layer bias', list(theDecoder.parameters())[3].size())
 #
 # print('\nDiscriminator: ')
-# print('\t length of model', len(list(modelD.parameters())))
-# print('\t first layer parameter', list(modelD.parameters())[0].size())
-# print('\t first layer bias', list(modelD.parameters())[1].size())
-# print('\t second layer parameter', list(modelD.parameters())[2].size())
-# print('\t second layer bias', list(modelD.parameters())[3].size())
+# print('\t length of model', len(list(theDiscriminator.parameters())))
+# print('\t first layer parameter', list(theDiscriminator.parameters())[0].size())
+# print('\t first layer bias', list(theDiscriminator.parameters())[1].size())
+# print('\t second layer parameter', list(theDiscriminator.parameters())[2].size())
+# print('\t second layer bias', list(theDiscriminator.parameters())[3].size())
 
 # STEP 7: Train the GAN
 
@@ -211,7 +211,7 @@ for epoch in range(n_epochs):
         # Train with real examples from dataset
         # print(traj)
         inputs = traj.float()  # .to(device)
-        # inputs = np.array(inputs, dtype=np.float32)
+        # zReal = np.array(zReal, dtype=np.float32)
 
         y_d = modelD(inputs)
 
@@ -242,7 +242,7 @@ for epoch in range(n_epochs):
         y_d_fakeG = modelD(y_gG)  # Since we just updated D, perform another forward pass of all-fake batch through D
 
         # Using D2
-        # print(y_gG.size())
+        # print(yGenerator.size())
         solution_found, slope_check = setofrules(y_gG.reshape([100, 1]))
         torch.tensor(solution_found, dtype=torch.int)
         if solution_found == 1:
@@ -258,7 +258,7 @@ for epoch in range(n_epochs):
         # # Update G
         optimizerG.step()
         #
-        # loss = criterion(inputs, y_gG)  # Difference between real and fake trajectory points
+        # loss = criterion(zReal, yGenerator)  # Difference between real and fake trajectory points
 
         n_iter += 1
         # Save Losses for plotting later
@@ -291,7 +291,7 @@ for m1 in range(0, 5):
 
         y_plt = y[0].detach().numpy()
         ax[m1, m2].plot(t, y_plt)
-        # y_plt_actual = inputs[0].detach().numpy()
+        # y_plt_actual = zReal[0].detach().numpy()
         # ax[m1, m2].plot(t, y_plt_actual)
         # plt.legend(["Generated", "Actual"])
 
