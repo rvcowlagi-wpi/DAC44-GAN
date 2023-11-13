@@ -11,8 +11,8 @@ device = "cuda"
 nFeatures = 200
 nTimeStamps = 100
 dt_ = 0.1
-dimLatent = 16
-myBatchSize = 35
+dimLatent = 2
+myBatchSize = 30
 
 
 # ========== Encoder model

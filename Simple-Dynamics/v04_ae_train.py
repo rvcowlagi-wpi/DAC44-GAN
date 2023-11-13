@@ -29,7 +29,7 @@ learningRateG = 1E-4
 optimizerG = torch.optim.Adam(theDecoder.parameters(), lr=learningRateG)
 
 # ===== Initialize training
-nEpochs = 1000
+nEpochs = 3000
 nIter = 0
 lossRecordEn = []
 

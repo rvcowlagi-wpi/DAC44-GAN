@@ -31,7 +31,7 @@ optimizerD = torch.optim.Adam(theDiscriminator.parameters(), lr=learningRateD)
 
 
 # ===== Initialize training
-nEpochs = 500
+nEpochs = 5000
 nIter = 0
 lossRecordD = []
 lossRecordG = []
@@ -65,6 +65,9 @@ for epoch in range(nEpochs):
         lossD.backward()
         optimizerD.step()
 
+        if (epoch < 500) & (epoch % 5):
+            continue
+
         # ===== GENERATOR TRAINING =====
         # ----- Reset gradients
         theGenerator.zero_grad()
@@ -80,7 +83,7 @@ for epoch in range(nEpochs):
         lossGRules = loss_gen_rules(rulesScore, Variable(torch.zeros(myBatchSize, nFeatures)).to(device))
 
         # ----- Find gradient and update G
-        lossG = lossGDisc + 0.1*lossGRules
+        lossG = lossGDisc + 0.05*lossGRules
         lossG.backward()
         optimizerG.step()
 
