@@ -31,16 +31,16 @@ This program implements the minimum-time solution for the Zermelo
 navigation problem. Wind is an external function handle.
 %}
 
-function [sim_result_, solution_found_] = mintime_solver(n_traj_points)
+function [sim_result_, solution_found_,windmap] = mintime_solver(n_traj_points)
 
 close all; clc;
 
 wind_fcn			= @calculate_wind02;
 wind_params.const_1 = 2*pi*rand;
 wind_params.const_2 = 0.25*rand;
-
+windmap = info_wind_gridnew(wind_params);
 verbose_and_plot_	= false;
-
+%w = wind_params.const_1;
 %% Problem data
 
 %----- Aircraft speed (normalized units)
@@ -52,7 +52,7 @@ x_term	= [-0.8; -0.9];
 [wind_x1_init, wind_x2_init, ~, ~, ~, ~] = ...
 	wind_fcn(x_init(1), x_init(2), wind_params);
 
-
+%[wind_x1_init, wind_x2_init, ~, ~, ~, ~] = wind_interpret(x_init(1),x_init(2),windmap);
 %% Find optimal initial heading and traversal time
 %{
 	There may be multiple solutions, each correspoding to a local minimum.
@@ -76,11 +76,11 @@ for n_ = 0:n_trials
 	%----- Initial guesses for optimal initial heading and traversal time tf
 	initial_guess_opt_psi0	= 2*pi*rand;
 	initial_guess_opt_tf	= (1 + 4*rand)*(norm(x_term - x_init) / spd_V);
-
+   
 	%----- Threat at initial position
 	[wind_x1_init, wind_x2_init, ~, ~, ~, ~] = ...
 		wind_fcn(x_init(1), x_init(2), wind_params);
-
+    
 	%----- Solve for optimal initial heading and traversal time
 	[y_opt, ~, exit_flag]	= ...
 		fsolve(@boundary_conditions, ...
@@ -91,7 +91,7 @@ for n_ = 0:n_trials
 		% This is not a valid solution
 		continue;
 	end
-	
+	%disp('Reached point B');
 	%----- Validate solution: Check if Hamiltonian remains zero always
 	psi0_opt= y_opt(1);
 	tf_opt	= y_opt(2);
@@ -112,13 +112,13 @@ for n_ = 0:n_trials
 		p2_t	= q_sim_traj(m1, 5);
 
 		[wind_x1_t, wind_x2_t, ~, ~, ~, ~] = wind_fcn(x1_t, x2_t, wind_params);
-
+        %[wind_x1_t, wind_x2_t, ~, ~, ~, ~] = wind_interpret(x1_t, x2_t, windmap);
 		tr2_sim(m1) = abs(tan(psi_t) - p2_t/p1_t);
 
 		hamiltonian_traj(m1) = 1 + p1_t*(spd_V*cos(psi_t) + wind_x1_t) + ...
 			p2_t*(spd_V*sin(psi_t) + wind_x2_t);
 	end
-	
+	disp('Reached point C');
 	%----- Check if Hamiltonian is practically zero
 	if max(abs(hamiltonian_traj)) < 1E-7 && tf_opt > 0
 		%----- Local extremum found
@@ -130,7 +130,7 @@ for n_ = 0:n_trials
 		end
 	end
 end
-
+disp('Reached point D');
 %% Simulate system with optimal control (sanity check)
 if solution_found_
 	psi0_opt= y_star(1);
@@ -153,6 +153,8 @@ if solution_found_
 	for m2 = 1:n_traj_points
 		[tmp1_, tmp2_, tmp3_, tmp4_, tmp5_, tmp6_] = ...
 			wind_fcn(q_sim_traj(m2, 1), q_sim_traj(m2, 2), wind_params);
+%         [tmp1_, tmp2_, tmp3_, tmp4_, tmp5_, tmp6_] = ...
+% 			wind_interpret(q_sim_traj(m2, 1), q_sim_traj(m2, 2), windmap);
 		wind_x1_traj(m2)		= tmp1_;
 		wind_x2_traj(m2)		= tmp2_;
 		wind_grad_11_traj(m2)	= tmp3_;
@@ -160,7 +162,7 @@ if solution_found_
 		wind_grad_21_traj(m2)	= tmp5_;
 		wind_grad_22_traj(m2)	= tmp6_;
 	end
-	
+	disp('Reached point E');
 	% UNCOMMENT THIS IF WIND GRADIENTS ARE NEEDED
 % 	sim_result_	= [x_init; x_term; y_star; min_cost; t_sim_traj; ...
 % 		q_sim_traj(:, 1); q_sim_traj(:, 2); ...
@@ -181,7 +183,7 @@ end
 if ~verbose_and_plot_
 	return
 end
-
+disp('Reached point F');
 %% Plot optimal trajectory
 wksp		= 1;
 n_plot_pts	= 21;
@@ -193,7 +195,7 @@ x2max		= max(q_sim_traj(:, 2)) + 0.1;
 	linspace(min(-wksp, x1min), max(wksp, x1max), n_plot_pts), ...
 	linspace(min(-wksp, x2min), max(wksp, x2max), n_plot_pts));
 [wind_x1_grid, wind_x2_grid, ~, ~, ~, ~] = wind_fcn(x1, x2, wind_params);
-
+%[wind_x1_grid, wind_x2_grid, ~, ~, ~, ~] = wind_interpret(x1, x2, windmap);
 figure('units', 'normalized', 'OuterPosition', [0.05 0.05 0.6 0.9]);
 hold on; grid on; axis equal; %axis tight;
 xlim([min(-wksp, x1min), max(wksp, x1max)]); 
@@ -233,6 +235,10 @@ ylabel('$p_y$ (normalized units)', 'FontName', 'Times New Roman', ...
 			wind_gradient_11_, wind_gradient_12_, ...
 			wind_gradient_21_, wind_gradient_22_] = ...
 			wind_fcn(x1_, x2_, wind_params);
+%         [wind_x1_, wind_x2_, ...
+% 			wind_gradient_11_, wind_gradient_12_, ...
+% 			wind_gradient_21_, wind_gradient_22_] = ...
+% 			wind_interpret(x1_, x2_, windmap);
 		q_dot(1:2,1)= spd_V*[cos(psi_); sin(psi_)] + [wind_x1_; wind_x2_];	% Aircraft kinematics
 		
 		q_dot(3, 1)	= wind_gradient_21_*(sin(psi_)^2) + ...
@@ -254,6 +260,10 @@ ylabel('$p_y$ (normalized units)', 'FontName', 'Times New Roman', ...
 			wind_gradient_11_, wind_gradient_12_, ...
 			wind_gradient_21_, wind_gradient_22_] = ...
 			wind_fcn(x1_, x2_, wind_params);
+%         [wind_x1_, wind_x2_, ...
+% 			wind_gradient_11_, wind_gradient_12_, ...
+% 			wind_gradient_21_, wind_gradient_22_] = ...
+% 			wind_interpret(x1_, x2_, windmap);
 		q_dot(1:2,1)= spd_V*[cos(psi_); sin(psi_)] + [wind_x1_; wind_x2_];	% Aircraft kinematics
 		
 		q_dot(3, 1)	= wind_gradient_21_*(sin(psi_)^2) + ...

@@ -35,15 +35,17 @@ Generates a subset from a larger dataset of Zermelo trajectories.
 
 clear variables; close all; clc;
 
-load dataset2_var_wind.mat baseline_data
+load dataset3_var_wind1.mat baseline_data
+baseline_data_wind = baseline_data(808:end,:);
+baseline_data = baseline_data(1:807,:);
 nMaxTrajectories	= size(baseline_data, 2);
 nMaxDiscretization	= (size(baseline_data, 1) - 7)/8;
 
 %% Choose subset parameters
 
-nTrajectories	= 1000;		% Choose how many trajectories wanted in data-subset
+nTrajectories	= 7000;		% Choose how many trajectories wanted in data-subset
 nDiscretization	= 25;		% Choose number of discretization points
-nStates			= 3;		% Choose how many of the 7 states to keep
+nStates			= 7;		% Choose how many of the 7 states to keep
 % The states are in the order (x1, x2, psi, p1, p2, wind1, wind2)
 % This selection will keep the first "nStates" states, i.e.,
 % if nStates = 3, the subset will keep (x, y, psi)
@@ -68,12 +70,14 @@ end
 nSkip	= floor( nMaxDiscretization / nDiscretization );
 for k1 = 1:nTrajectories
 
-	traj_k1	= baseline_data( (8 + nMaxDiscretization) ...
+% 	traj_k1	= baseline_data( (8 + nMaxDiscretization) ...
+% 		: nSkip : (7 + (nStates + 1)*nMaxDiscretization), k1 );
+    traj_k1	= baseline_data( 8 ...
 		: nSkip : (7 + (nStates + 1)*nMaxDiscretization), k1 );
+    traj_kk1	= baseline_data_wind( : ,k1 );
+    traj_k1 = [traj_k1(26:end, :); traj_k1(1:25, :)];
+    traj_k1 = [traj_k1;traj_kk1];
 	filename_ = [foldername_ '/mintime_points' num2str(k1) '.csv'];
 	writematrix(traj_k1, filename_ );
 
 end
-
-
-

@@ -55,17 +55,24 @@ size_data	= nDiscretization*8 + 7; % <==== REMOVING WIND GRADIENTS FROM DATA
 %}
 baseline_data = zeros(size_data, nTrajectories);
 remove_trials = false(1,nTrajectories);
+%wn = zeros(length(nTrajectories),1);
 parfor m = 1:nTrajectories
 	disp(m)
-	[sim_result_, solution_found_] = mintime_solver(nDiscretization);
+	[sim_result_, solution_found_,wind_map] = mintime_solver(nDiscretization);
+    %wn(m) = w;
+    
 	if solution_found_
 		baseline_data(:, m) = sim_result_;
-	else
+        %wind_data{m} = wind_map; % Store wind data in a cell array
+        wind_data{m} = [wind_map(:,1);wind_map(:,2);wind_map(:,3);wind_map(:,4);wind_map(:,5);wind_map(:,6);wind_map(:,7);wind_map(:,8)];
+    else
 		remove_trials(m)	= true;
 	end
 end
+wind_data = cell2mat(wind_data);
 baseline_data(:, remove_trials) = [];	% remove trials where no solution was found
-
+baseline_data = [baseline_data;wind_data]; 
+disp('reached')
 
 
 % n_traj_examples can differ slightly from n_trials if solutions are not
@@ -75,7 +82,7 @@ baseline_data(:, remove_trials) = [];	% remove trials where no solution was foun
 % 	num2str(n_trials, '%.4i') '_t' num2str(posixtime(datetime(datestr(now))))];
 % mkdir(foldername_)
 
-save dataset3_var_wind.mat baseline_data
+save dataset3_var_wind1.mat baseline_data
 
 % Write data to CSV files using datagen_training.m
 
