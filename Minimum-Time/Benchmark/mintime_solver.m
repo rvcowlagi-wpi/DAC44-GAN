@@ -39,7 +39,7 @@ wind_fcn			= @calculate_wind02;
 wind_params.const_1 = 2*pi*rand;
 wind_params.const_2 = 0.25*rand;
 
-verbose_and_plot_	= false;
+verbose_and_plot_	= true;
 
 %% Problem data
 
@@ -183,7 +183,7 @@ if ~verbose_and_plot_
 end
 
 %% Plot optimal trajectory
-wksp		= 1;
+wksp		= 1.5;
 n_plot_pts	= 21;
 x1min		= min(q_sim_traj(:, 1)) - 0.1;
 x1max		= max(q_sim_traj(:, 1)) + 0.1;
@@ -196,8 +196,9 @@ x2max		= max(q_sim_traj(:, 2)) + 0.1;
 
 figure('units', 'normalized', 'OuterPosition', [0.05 0.05 0.6 0.9]);
 hold on; grid on; axis equal; %axis tight;
-xlim([min(-wksp, x1min), max(wksp, x1max)]); 
-ylim([min(-wksp, x2min), max(wksp, x2max)])
+% xlim([min(-wksp, x1min), max(wksp, x1max)]); 
+% ylim([min(-wksp, x2min), max(wksp, x2max)])
+xlim([-1.5 1.5]); ylim([-1.5 1.5])
 plot(x_init(1), x_init(2), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 10);
 plot(x_term(1), x_term(2), 'ks', 'MarkerFaceColor', 'k', 'MarkerSize', 10);
 text(x_init(1) , x_init(2) + 0.02, 'A', 'FontName', 'Times New Roman', ...
@@ -213,10 +214,10 @@ plot(q_sim_traj(:, 1), q_sim_traj(:, 2), 'k', 'LineWidth', 6);
 ax.FontName = 'Times New Roman';
 ax.FontSize = 20;
 figtitle	= ['zermelo_' num2str(posixtime(datetime(datestr(now)))) '.png'];
-% exportgraphics(ax, figtitle, 'Resolution', 300);
-xlabel('$p_x$ (normalized units)', 'FontName', 'Times New Roman', ...
+exportgraphics(ax, figtitle, 'Resolution', 300);
+xlabel('$r_1$ (normalized units)', 'FontName', 'Times New Roman', ...
 	'FontSize', 20, 'FontAngle', 'italic', 'FontWeight', 'bold', 'interpreter', 'latex');
-ylabel('$p_y$ (normalized units)', 'FontName', 'Times New Roman', ...
+ylabel('$r_2$ (normalized units)', 'FontName', 'Times New Roman', ...
 	'FontSize', 20, 'FontAngle', 'italic', 'FontWeight', 'bold', 'interpreter', 'latex'); 
 
 
