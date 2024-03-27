@@ -38,7 +38,7 @@ for epoch in range(nEpochs):
         optimizerG.zero_grad()
 
         # ----- Sample from latent vector space
-        z = torch.randn([my_batch_size, model_setup.inputDimG]).to(device)
+        z = torch.randn([my_batch_size, model_setup.dimGenInput]).to(device)
 
         # ----- Pass latent vector through G
         y_gG = modelG(z).to(device)
@@ -82,7 +82,7 @@ fig.set_figwidth(1800*px)
 fig.set_figheight(1500*px)
 modelG.to("cpu")
 
-z = torch.randn([10, model_setup.inputDimG])
+z = torch.randn([10, model_setup.dimGenInput])
 y = modelG(z)
 for m1 in range(0, n_plot_row):
     for m2 in range(0, n_plot_col):
@@ -97,14 +97,14 @@ for m1 in range(0, n_plot_row):
 # px = 1/plt.rcParams['figure.dpi']
 # fig.set_figwidth(900*px)
 # fig.set_figheight(1500*px)
-# modelG.to("cpu")
+# theDecoder.to("cpu")
 # for m1 in range(0, npRow):
 #     for m2 in range(0, npCol):
-#         z = torch.randn([my_batch_size, inputDimG])
-#         y = modelG(z)
+#         z = torch.randn([myBatchSize, dimGenInput])
+#         y = theDecoder(z)
 #
-#         x1_plt = y[0].detach().numpy()
-#         ax[m1].plot(t, x1_plt)
+#         x1Plot = y[0].detach().numpy()
+#         ax[m1].plot(t, x1Plot)
 
 
 # --- Generator loss

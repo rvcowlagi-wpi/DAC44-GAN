@@ -36,7 +36,7 @@ my_batch_size = 1
 
 data_1d = np.array(pd.read_csv('Data/data_1d.txt'))
 data_1d_test = np.array(pd.read_csv('Data/data_1d_test.txt'))
-# data_2d = np.array(pd.read_csv('Data/data_2d.txt'))
+# data2D = np.array(pd.read_csv('Data/data2D.txt'))
 
 #dataset = torch.utils.data.TensorDataset(torch.Tensor(data_1d))
 train_loader = torch.utils.data.DataLoader(data_1d, batch_size=my_batch_size)
@@ -170,18 +170,18 @@ optimizerG = torch.optim.SGD(modelG.parameters(), lr=learning_rate_gen)
 # Readout layer size ; the size of out output
 
 # print('\nGenerator:')
-# print('\t length of model', len(list(modelG.parameters())))
-# print('\t first layer parameter', list(modelG.parameters())[0].size())
-# print('\t first layer bias', list(modelG.parameters())[1].size())
-# print('\t second layer parameter', list(modelG.parameters())[2].size())
-# print('\t second layer bias', list(modelG.parameters())[3].size())
+# print('\t length of model', len(list(theDecoder.parameters())))
+# print('\t first layer parameter', list(theDecoder.parameters())[0].size())
+# print('\t first layer bias', list(theDecoder.parameters())[1].size())
+# print('\t second layer parameter', list(theDecoder.parameters())[2].size())
+# print('\t second layer bias', list(theDecoder.parameters())[3].size())
 #
 # print('\nDiscriminator: ')
-# print('\t length of model', len(list(modelD.parameters())))
-# print('\t first layer parameter', list(modelD.parameters())[0].size())
-# print('\t first layer bias', list(modelD.parameters())[1].size())
-# print('\t second layer parameter', list(modelD.parameters())[2].size())
-# print('\t second layer bias', list(modelD.parameters())[3].size())
+# print('\t length of model', len(list(theDiscriminator.parameters())))
+# print('\t first layer parameter', list(theDiscriminator.parameters())[0].size())
+# print('\t first layer bias', list(theDiscriminator.parameters())[1].size())
+# print('\t second layer parameter', list(theDiscriminator.parameters())[2].size())
+# print('\t second layer bias', list(theDiscriminator.parameters())[3].size())
 
 # STEP 7: Train the GAN
 
@@ -219,7 +219,7 @@ for epoch in range(n_epochs):
         # Train with real examples from dataset
         # print(traj)
         inputs = traj.float()  # .to(device)
-        # inputs = np.array(inputs, dtype=np.float32)
+        # zReal = np.array(zReal, dtype=np.float32)
 
         y_d = modelD(inputs)
 
@@ -230,14 +230,14 @@ for epoch in range(n_epochs):
         #optimizerD.step()
 
         # # Train with fake examples from generator
-        z = torch.randn([my_batch_size, input_dimG])  # torch.distributions.uniform.Uniform(-10, 10).sample([my_batch_size, inputDimG]).to(device)  # latent vector
+        z = torch.randn([my_batch_size, input_dimG])  # torch.distributions.uniform.Uniform(-10, 10).sample([myBatchSize, dimGenInput]).to(device)  # latent vector
         y_g = modelG(z)
         y_d_fake = modelD(y_g)
         error_fake = loss_dg(y_d_fake, zeros_target(my_batch_size))
 
-        #z2 = torch.distributions.uniform.Uniform(-10, 10).sample([my_batch_size, inputDimG]).to(device)  # latent vector
-        #y_g2 = modelG(z2)
-        #y_d_fake2 = modelD(y_g2)
+        #z2 = torch.distributions.uniform.Uniform(-10, 10).sample([myBatchSize, dimGenInput]).to(device)  # latent vector
+        #y_g2 = theDecoder(z2)
+        #y_d_fake2 = theDiscriminator(y_g2)
         solution_found, slope_check = setofrules(inputs.reshape([100, 1]))
         torch.tensor(solution_found, dtype=torch.int)
         if solution_found == 1:
@@ -247,7 +247,7 @@ for epoch in range(n_epochs):
              d2 = 1
              error_of_d2 = slope_check.detach()  # 0.1
         # Calculate error and backpropagate
-        #error_fake2 = lossFcnG(y_d_fake2, zeros_target(my_batch_size))
+        #error_fake2 = loss_decoder(y_d_fake2, zeros_target(myBatchSize))
         #err = torch.tensor([error_fake, error_fake2])
         # error_fake2.backward()
         # optimizerD.step()
@@ -261,25 +261,25 @@ for epoch in range(n_epochs):
 
         # # GENERATOR
         # # Reset gradients
-        # modelG.zero_grad()
+        # theDecoder.zero_grad()
         # optimizerG.zero_grad()
         #
-        # z = torch.distributions.uniform.Uniform(-1, 1).sample([my_batch_size, inputDimG]).to(device)  # latent vector
-        # y_gG = modelG(z)
-        # y_d_fakeG = modelD(y_gG)  # Since we just updated D, perform another forward pass of all-fake batch through D
+        # z = torch.distributions.uniform.Uniform(-1, 1).sample([myBatchSize, dimGenInput]).to(device)  # latent vector
+        # yGenerator = theDecoder(z)
+        # y_d_fakeG = theDiscriminator(yGenerator)  # Since we just updated D, perform another forward pass of all-fake batch through D
         #
         # # Using D2
-        # # print(y_gG.size())
+        # # print(yGenerator.size())
 
         #
         # # Calculate error and backpropagate """
-        # errorG = lossFcnG(y_d_fakeG, ones_target(my_batch_size))
+        # errorG = loss_decoder(y_d_fakeG, ones_target(myBatchSize))
         # error_gd1d2 = (w1 * errorG) # + (w2 * rulesScore)
         # error_gd1d2.backward()
         # # # # Update G
         # optimizerG.step()
         #
-        # loss = criterion(inputs, y_gG)  # Difference between real and fake trajectory points
+        # loss = criterion(zReal, yGenerator)  # Difference between real and fake trajectory points
 
         n_iter += 1
         # Save Losses for plotting later
@@ -297,7 +297,7 @@ for epoch in range(n_epochs):
 # PATH = "trained_disc.pt"
 
 # Save
-# torch.save(modelD, PATH)
+# torch.save(theDiscriminator, PATH)
 torch.save(modelD.state_dict(), 'discriminator_model.pt')
 
 
@@ -305,12 +305,12 @@ for i, (test_traj) in enumerate(test_loader):
     # Test with real examples from dataset
     # print(traj)
     inputs_test = test_traj.float()  # .to(device)
-    # inputs = np.array(inputs, dtype=np.float32)
+    # zReal = np.array(zReal, dtype=np.float32)
 
     y_d_test = modelD(inputs_test)
 
     # Calculate error and backpropagate
-    #error_test = lossFcnG(y_d_test, ones_target(len(test_traj)))
+    #error_test = loss_decoder(y_d_test, ones_target(len(test_traj)))
     #D_losses_test.append(error_test.item())
     D_out_test.append(y_d_test.item())
 stop_clock = time.time()
@@ -329,12 +329,12 @@ print('\nElapsed time ' + str(elapsed_hours) + ':' + str(elapsed_minutes) + ':' 
 # fig.set_figheight(1100*px)
 # for m1 in range(0, 5):
 #     for m2 in range(0, 2):
-#         z = torch.distributions.uniform.Uniform(-1, 1).sample([1, inputDimG]).to(device)
-#         y = modelG(z).to("cpu")
+#         z = torch.distributions.uniform.Uniform(-1, 1).sample([1, dimGenInput]).to(device)
+#         y = theDecoder(z).to("cpu")
 #
 #         y_plt = y[0].detach().numpy()
 #         ax[m1, m2].plot(t, y_plt)
-        # y_plt_actual = inputs[0].detach().numpy()
+        # y_plt_actual = zReal[0].detach().numpy()
         # ax[m1, m2].plot(t, y_plt_actual)
         # plt.legend(["Generated", "Actual"])
 

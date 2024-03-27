@@ -37,7 +37,7 @@ trajectory.
 clear variables; close all; clc;
 
 %------ For traditional Zermelo solutions
-nTrajectories	= 10;
+nTrajectories	= 1%10000;
 nDiscretization	= 100;
 % size_data	= nDiscretization*12 + 7; 
 size_data	= nDiscretization*8 + 7; % <==== REMOVING WIND GRADIENTS FROM DATA
@@ -82,9 +82,12 @@ baseline_data(:, remove_trials) = [];	% remove trials where no solution was foun
 return
 
 %% Plot a randomly chosen trajectory
-this_trial	= 1 + round(rand*(nDiscretization - 1));
-filename_	= [foldername_ '/mintime_points' num2str(this_trial) '.csv'];
-this_traj	= readmatrix(filename_);
+% this_trial	= 1 + round(rand*(nDiscretization - 1));
+% filename_	= [foldername_ '/mintime_points' num2str(this_trial) '.csv'];
+% this_traj	= readmatrix(filename_);
+
+this_traj	= baseline_data(8+nDiscretization:end, 1);
+this_traj	= reshape(this_traj, nDiscretization, 7);
 
 wksp		= 1;
 n_plot_pts	= 21;
@@ -119,10 +122,12 @@ ax.FontName = 'Times New Roman';
 ax.FontSize = 20;
 figtitle	= ['zermelo_' num2str(posixtime(datetime(datestr(now)))) '.png'];
 % exportgraphics(ax, figtitle, 'Resolution', 300);
-xlabel('$r_1$ (normalized units)', 'FontName', 'Times New Roman', ...
+xlabel('$p_x$ (normalized units)', 'FontName', 'Times New Roman', ...
 	'FontSize', 20, 'FontAngle', 'italic', 'FontWeight', 'bold', 'interpreter', 'latex');
-ylabel('$r_2$ (normalized units)', 'FontName', 'Times New Roman', ...
+ylabel('$p_y$ (normalized units)', 'FontName', 'Times New Roman', ...
 	'FontSize', 20, 'FontAngle', 'italic', 'FontWeight', 'bold', 'interpreter', 'latex'); 
+
+return
 
 %% Zero Hamiltonian and psi-dot tests for trajectory
 
