@@ -9,7 +9,7 @@ end
 if flags_.SHOW_TRUE && flags_.SHOW_ESTIMATE
 	if flags_.JUXTAPOSE
 		figure('Name', 'True', 'Units','normalized', ...
-			'Position', [figXOffset + 0.3 0.1 0.3*[1.8 1.6]]);
+			'Position', [figXOffset + 0.3 0.0 0.3*[1.8 1.6]]);
 		axisTrue= subplot(1,2,1);
 		axisEst	= subplot(1,2,2);
 	else
@@ -22,7 +22,7 @@ if flags_.SHOW_TRUE && flags_.SHOW_ESTIMATE
 	end
 else
 	figure('Name', 'True', 'Units','normalized', ...
-		'Position', [figXOffset + 0.6 0.1 0.25*[0.9 1.6]]);
+		'Position', [figXOffset + 0.6 0.4 0.5*[0.9 1.6]]);
 	if flags_.SHOW_TRUE
 		axisTrue= gca;
 	elseif flags_.SHOW_ESTIMATE
@@ -42,7 +42,7 @@ if flags_.SHOW_TRUE
 		locationsMesh, threat_.stateHistory(:, 1));
 	imageMax	= max(threatMesh(:));
 	imageMin	= min(threatMesh(:));
-	imageClims	= [0.8*imageMin 1.5*imageMax];
+	imageClims	= [0.8*imageMin 1.2*imageMax];
 	
 	grHdlSurf	= surfc(axisTrue, xMesh, yMesh, threatMesh,'LineStyle','none');
 	clim(imageClims); colorbar; view(2);
@@ -60,10 +60,10 @@ if flags_.SHOW_TRUE
 		'FontSize', 12, 'Interpreter','latex');
 
 	%----- Plot grid
-	plot3(...
-		obj.coordinates(1, :), obj.coordinates(2, :), ...
-		imageMax*ones(1, size(obj.coordinates, 2)), ...
-		'.', 'Color', 'w', 'MarkerSize', 20);
+% 	plot3(...
+% 		obj.coordinates(1, :), obj.coordinates(2, :), ...
+% 		imageMax*ones(1, size(obj.coordinates, 2)), ...
+% 		'.', 'Color', 'w', 'MarkerSize', 20);
 
 	%----- Plot centers of basis functions
 	plot3(...
@@ -83,7 +83,7 @@ if flags_.SHOW_TRUE
 
 	drawnow();
 
-	for m1 = 2:length(threat_.timeStampState)
+	for m1 = 1; %2:length(threat_.timeStampState)
 		delete(grHdlSurf);
 		delete(grHdlTimeText);
 		delete(grHdlPath);
@@ -117,8 +117,8 @@ if flags_.SHOW_TRUE
 			grHdlPath = plot3(...
 				obj.coordinates(1, obj.optimalPath.loc), ...
 				obj.coordinates(2, obj.optimalPath.loc), ...
-				imageMax*ones(1, size(threat_.basisCenter, 2)), ...
-				'o', 'Color', 'w', 'MarkerSize', 20, 'LineWidth', 2);
+				imageMax*ones(1, length(obj.optimalPath.loc)), ...
+				'o', 'Color', 'w', 'MarkerSize', 15, 'LineWidth', 2);
 		end
 
 

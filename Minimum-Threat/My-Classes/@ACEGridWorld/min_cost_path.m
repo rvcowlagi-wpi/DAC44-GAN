@@ -138,15 +138,15 @@ while (vCurrent ~= 1)
 	vCurrent	= obj.searchOutcome(vCurrent).b;
 	optimalPathIDs	= cat(2, knownIDs(vCurrent), optimalPathIDs);
 end
-optimalPathIDs
+% optimalPathIDs
 
 optimalPathIDs(end) = [];
 pathPointsInGrid = mod(optimalPathIDs, obj.nPoints);
 pathPointsInGrid(pathPointsInGrid == 0) = obj.nPoints;
 pathPointsInTime = floor( (optimalPathIDs - pathPointsInGrid) / obj.nPoints );
 
-pathPointsInGrid
-pathPointsInTime
+% pathPointsInGrid
+% pathPointsInTime
 
 
 %----- Outputs

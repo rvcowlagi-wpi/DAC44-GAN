@@ -82,7 +82,7 @@ classdef ParametricThreat
 			% basis variance chosen arbitrarily
 			obj.basisCenter	= zeros(2, obj.nStates);
 			for m1 = 1:obj.nStates
-				obj.basisCenter(:, m1) = halfWorkspaceSize_*(-1 + 2*rand(2, 1) );
+				obj.basisCenter(:, m1) = halfWorkspaceSize_*(-2 + 4*rand(2, 1) );
 			end
 
 			% basis variance chosen such that the range of influence of each basis just
@@ -91,14 +91,15 @@ classdef ParametricThreat
 			% Range of influce (x_rng) is governed by threat value and noise level. It
 			% has similar meaning/use to a signal-to-noise ratio (SNR)
 			
-			basisSpread_	= (halfWorkspaceSize_*rand(obj.nStates, 1).^2);
+			basisSpread_	= (0.1 + 0.5*halfWorkspaceSize_*rand(obj.nStates, 1).^2);
 			obj.basisSpread	= basisSpread_;		% This is \sigma^2_\Psi
-			obj.offset		= 1;
+			obj.offset		= 0;
 
-			exampleState	= [ 0    1    0; ...           % How the threats look visually
-								1    5    1; ...           % but, need to flip, transpose
-								0    1    0];
-			obj.state		= reshape(flipud(exampleState)', [obj.nStates, 1]);
+% 			exampleState	= [ 0    1    0; ...           % How the threats look visually
+% 								1    5    1; ...           % but, need to flip, transpose
+% 								0    1    0];
+			exampleState	= 0.5 + 1.5*rand(obj.nStates, 1);
+			obj.state		= exampleState; %reshape(flipud(exampleState)', [obj.nStates, 1]);
 			obj.alfa		= 1e-3;
 
 
@@ -206,14 +207,11 @@ classdef ParametricThreat
 			end
 			observationH_		= zeros(nLocations, obj.nStates);
 
-			for m1 = 1:nLocations					
-				locationVec_ = [locationsFlatnd(1, m1)*ones(1, obj.nStates); ...
-					locationsFlatnd(2, m1)*ones(1, obj.nStates)];
-			
-				observationH_(m1, :) = exp((-1 / (2 * obj.basisSpread)) .* ...
-					((locationVec_(1, :) - obj.basisCenter(1, :)).^2 + ...
-	 				(locationVec_(2, :) - obj.basisCenter(2, :)).^2) );
-                
+			for m1 = 1:obj.nStates
+				relLocation = locationsFlatnd - obj.basisCenter(:, m1);
+				relRadiusSq = relLocation(1, :).^2 + relLocation(2, :).^2;
+				observationH_(:, m1) = ...
+					exp( (-1 / (2 * obj.basisSpread(m1))) .* relRadiusSq );
 			end
 		end
 		%------------------------------------------------------------------

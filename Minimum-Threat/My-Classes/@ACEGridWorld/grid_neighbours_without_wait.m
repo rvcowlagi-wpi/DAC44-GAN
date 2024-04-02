@@ -48,31 +48,35 @@ pointinTime = floor( (currentID - pointInGrid) / obj.nPoints );
 
 if mod( pointInGrid, obj.nGridRow )
 	% pointInGrid + 1 is a neighbour
-	newNeighbour= (pointInGrid + 1) + obj.nPoints * (pointinTime + 1);
-	newCost		= 1;
+	newNeighbour= (pointInGrid + 1); % + obj.nPoints * (pointinTime + 1);
+	newCost		= obj.threatModel.calculate_at_locations(...
+		obj.coordinates(:, newNeighbour), obj.threatModel.stateHistory(:, 1));
 	nhbrIDs		= [nhbrIDs; newNeighbour];
 	nhbrCosts	= [nhbrCosts; newCost];
 end
 if mod( pointInGrid - 1, obj.nGridRow )
 	% pointInGrid - 1 is a neighbour
-	newNeighbour= (pointInGrid - 1) + obj.nPoints * (pointinTime + 1);
-	newCost		= 1;
+	newNeighbour= (pointInGrid - 1); % + obj.nPoints * (pointinTime + 1);
+	newCost		= obj.threatModel.calculate_at_locations(...
+		obj.coordinates(:, newNeighbour), obj.threatModel.stateHistory(:, 1));
 	nhbrIDs		= [nhbrIDs; newNeighbour];
 	nhbrCosts	= [nhbrCosts; newCost];
 end
 
 if pointInGrid + obj.nGridRow <= obj.nPoints
 	% pointInGrid + obj.nGridRow is a neighbour
-	newNeighbour= (pointInGrid + obj.nGridRow) + obj.nPoints * (pointinTime + 1);
-	newCost		= 1;
+	newNeighbour= (pointInGrid + obj.nGridRow); % + obj.nPoints * (pointinTime + 1);
+	newCost		= obj.threatModel.calculate_at_locations(...
+		obj.coordinates(:, newNeighbour), obj.threatModel.stateHistory(:, 1));
 	nhbrIDs		= [nhbrIDs; newNeighbour];
 	nhbrCosts	= [nhbrCosts; newCost];
 end
 
 if pointInGrid - obj.nGridRow >= 1
 	% pointInGrid - obj.nGridRow is a neighbour
-	newNeighbour= (pointInGrid - obj.nGridRow) + obj.nPoints * (pointinTime + 1);
-	newCost		= 1;
+	newNeighbour= (pointInGrid - obj.nGridRow); % + obj.nPoints * (pointinTime + 1);
+	newCost		= obj.threatModel.calculate_at_locations(...
+		obj.coordinates(:, newNeighbour), obj.threatModel.stateHistory(:, 1));
 	nhbrIDs		= [nhbrIDs; newNeighbour];
 	nhbrCosts	= [nhbrCosts; newCost];
 end
