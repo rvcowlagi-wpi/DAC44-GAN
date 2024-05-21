@@ -76,7 +76,7 @@ while (nFringe ~= 0) && (~isGoalClosed)
 
 	[nhbrIDs, nhbrCosts] = obj.find_neighbours(obj.searchOutcome(vCurrent).id);				% Other function handle for nhbrs and costs
 
-	fprintf('\n-- Iteration: %i \n', nIter)
+% 	fprintf('\n-- Iteration: %i \n', nIter)
 	
 	for k = 1:numel(nhbrIDs)													% For all neighbours
 
@@ -139,6 +139,7 @@ while (vCurrent ~= 1)
 	optimalPathIDs	= cat(2, knownIDs(vCurrent), optimalPathIDs);
 end
 % optimalPathIDs
+% obj.searchOutcome(vGoal).d
 
 optimalPathIDs(end) = [];
 pathPointsInGrid = mod(optimalPathIDs, obj.nPoints);
@@ -153,8 +154,9 @@ pathPointsInTime = floor( (optimalPathIDs - pathPointsInGrid) / obj.nPoints );
 obj.optimalPath.IDs	= optimalPathIDs;
 obj.optimalPath.loc = pathPointsInGrid;
 obj.optimalPath.time= pathPointsInTime;
-obj.pathCost	= 1;
-obj.pathRisk	= 2;
+obj.optimalPath.Cost= obj.searchOutcome(vGoal).d;
+obj.pathCost		= obj.searchOutcome(vGoal).d;
+obj.pathRisk		= 0;
 
 
 	%======================================================================

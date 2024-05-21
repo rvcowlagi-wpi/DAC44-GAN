@@ -4,6 +4,7 @@ addpath(genpath('My-Classes'))
 nTrials	= 1000;
 cd Data
 foldername_ = string( datetime('now', 'Format', 'yyyyMMdd-HHmm') );
+
 mkdir(foldername_)
 cd(foldername_ )
 
@@ -69,7 +70,7 @@ for m0 = 1:nTrials
 	
 	filename_	= [num2str(m0,'%03.f'), '.csv'];
 	
-	writetable(threatDataTable, filename_, 'Delimiter', ',') 
+% 	writetable(threatDataTable, filename_, 'Delimiter', ',') 
 	
 end
 cd ../..
