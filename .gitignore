@@ -273,5 +273,8 @@ octave-workspace
 sandbox.py
 Minimum-Time/Data/data_mintime.txt
 
+*.DS_Store
+*.iml
+
 # Torch NN model
 *.pt
