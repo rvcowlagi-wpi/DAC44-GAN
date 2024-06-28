@@ -271,3 +271,7 @@ octave-workspace
 # Sandbox
 sandbox.py
 Minimum-Time/Data/data_mintime.txt
+
+# Mac stuff
+*.DS_Store
+*.iml
