@@ -83,7 +83,7 @@
 
 %%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-	\frametitle{}
+	\frametitle{Introduction}
 	\begin{itemize}[<+->]
 		\itemsep\baselineskip
 		\item Control and estimation methods usually start with a \\ dynamical system 
@@ -115,7 +115,7 @@
 
 %%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-	\frametitle{}
+	\frametitle{Nominal Model}
 	\begin{itemize}[<+->]
 		\itemsep\baselineskip
 		\item Control and estimation methods usually start with a \\ dynamical system 
@@ -130,7 +130,7 @@
 			\item $w$ is what we call the {process noise}
 		\end{itemize}
 		
-		\item Let us call this the \alert{believed model} \\
+		\item Let us call this the \alert{nominal model} \\
 		(to distinguish from other ``models'' that come up)
 		
 	\end{itemize}
@@ -142,11 +142,11 @@
 
 %%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-	\frametitle{}
+	\frametitle{Nominal v/s Real}
 	\begin{itemize}[<+->]
 		\itemsep\baselineskip
 		\item The real system evolves \emph{close to,} 
-		but not \emph{exactly} according to the believed model. Examples:
+		but not \emph{exactly} according to the nominal model. Examples:
 		
 		\item $f$ is slightly different, e.g., has some extra terms 
 		due to simplified physics
@@ -165,14 +165,121 @@
 
 
 
+
 %%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-	\frametitle{}
+	\frametitle{The Uncertainty Propagation Problem}
 	\begin{itemize}[<+->]
 		\itemsep\baselineskip
 		\item We are usually interested in the conditional distribution
 		$p(x(k + 1) ~|~ x(k), u(k))$ \\
 		for designing estimators or controllers (esp. RL-based controllers)
+		\begin{itemize}
+			\item Estimators like EKF / UKF need the mean and variance
+			\item Particle filter, RL methods need samples 
+		\end{itemize}
+		
+		\item \alert{Option 1} (most common practice): Find this distribution 
+		from the nominal model
+		\begin{itemize}
+			\item Even this approach involves approximations when $f$ is nonlinear:
+			e.g., linearization or unscented transform
+			\item Essentially, we entirely neglect the differences between reality 
+			and nominal model and hope that the controller / estimator is robust enough
+		\end{itemize}
+		
+		\item \alert{Option 2} (the adaptive control approach): Append a ``structured
+		uncertainty'' term $\Phi$ to $f$ and learn its parameters through open- and 
+		closed-loop training
+		\begin{itemize}
+			\item $\Phi$ often resembles a single-layer NN, e.g., weighted sum of RBFs
+			
+			\item Sometimes used in estimation as well
+					
+		\end{itemize}
+		
+	\end{itemize}
+	
+\end{frame}
+%---------------------------------------------------------------------------------------------
+
+
+
+
+
+%%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+	\frametitle{Data}
+	\begin{itemize}[<+->]
+		\itemsep \baselineskip
+		
+		\item We have some \alert{real trajectories}, i.e., time series 
+		$\xi(k) = (x(k), u(k))$ recorded during operation of the real system
+		\begin{itemize}
+			\item These are scarce
+		\end{itemize}
+		
+		\item We have some \alert{nominal trajectories}, time series 
+		$\xi(k) = (x(k), u(k))$ resulting from simulation of the nominal model
+		\begin{itemize}
+			\item These are abundant
+		\end{itemize}
+		
+	\end{itemize}
+	
+\end{frame}
+%---------------------------------------------------------------------------------------------
+
+
+
+
+
+%%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+	\frametitle{Rationale}
+	\begin{itemize}[<+->]
+		\itemsep \baselineskip
+		
+		\item The unscented transform is motivated by the idea that it is better to
+		approximate the \emph{distribution} propagated through $f,$ than to approximate
+		$f$ itself (e.g., by linearization)
+		
+		\item Which suggests that Options~1 and~2 may be outperformed by ...
+		
+		\item \alert{Option 3:} Train a conditioned generative model on both
+		real and nominal trajectories to produce samples of 
+		$x(k + 1)$ for given $x(k), u(k)$
+	
+		
+	\end{itemize}
+	
+\end{frame}
+%---------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+	\frametitle{Case Study 1}
+	\begin{itemize}[<+->]
+		\itemsep \baselineskip
+		
+		\item Nominal model is linear:
+		\begin{align*}
+			x(k + 1) &= A x(k) + B u(k)
+		\end{align*}
+		
+		\item Suppose $x(k) \in \real[2], ~u(k) \in \real$ and $A$ is Hurwitz: 
+		$Re$(both eigenvalues) $< 0$
+		
+		\item Real system does not have process noise, but has unmodeled terms:
+		\begin{align*}
+			x(k + 1) &= A x(k) + B u(k) + \mathalert{\tilde{f}(x(k))}
+		\end{align*}
 		
 		
 	\end{itemize}
@@ -182,34 +289,32 @@
 
 
 
-%
-%
-%%%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}
-%	\frametitle{Example of an Overview Slide}
-%	\begin{itemize}[<+->]
-%		\itemsep \baselineskip
-%		
-%		\item List \alert{no more than 4} main sections, examples below.
-%		\begin{itemize}
-%			\item No periods (full stops) after section title bullet list.
-%			\item Highlight the section to follow immediately after this slide.
-%			\item Previous sections should be in gray color. See examples below.
-%			\item ``Introduction'' is not a section; this Overview is part of
-%			an ``Introduction''.
-%		\end{itemize}
-%		
-%		\item \textcolor{my-gray}{Problem Formulation}
-%		
-%		\item \textbf{Method}
-%		
-%		\item Results \& Discussion
-%	\end{itemize}
-%	
-%\end{frame}
-%%---------------------------------------------------------------------------------------------
-%
-%
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+	\frametitle{Generative Model}
+	\begin{itemize}[<+->]
+		\itemsep \baselineskip
+		
+		\item Consider a ``variational propagator''
+		\begin{align*}
+			\xi &\rightarrow p(z | \xi) \\
+			z \sim p(z | \xi) &\rightarrow D(z)
+		\end{align*}
+		
+		\item $L = \| D(z) - x(k + 1) \| + KL$
+		
+	\end{itemize}
+
+\end{frame}
+%---------------------------------------------------------------------------------------------
+
 %
 %
 %
