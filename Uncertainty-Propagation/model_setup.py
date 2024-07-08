@@ -1,10 +1,11 @@
 # ========== Dependencies
 import torch
 import torch.nn as nn
-import numpy
-import pandas
-from torch.autograd.variable import Variable
 
+import numpy as np
+
+from tqdm import tqdm
+from torchvision.utils import save_image, make_grid
 
 device = "cuda"
 
@@ -13,42 +14,43 @@ nStates = 2
 nControl = 1
 nFeatures = nStates + nControl
 dimLatent = 2
+dimOutput = nStates
 myBatchSize = 30
 
+# ========== Encoder
+dimEnc100 = 16
+dimEnc200 = 4
 
-# ========== Encoder model
-dimEnc100 = 64
-dimEnc200 = 32
-dimEnc300 = 16
-dimEnc400 = 4
-dimEnc500 = 2
 
 class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
 
+        # Just a two layer network to encode
+        # \xi = (x, u) to mean and variance
         self.layers = nn.Sequential(
             nn.Linear(nFeatures, dimEnc100),  # input layer
             nn.ELU(),
             nn.Linear(dimEnc100, dimEnc200),  # hidden layer 1
             nn.ELU(),
-            nn.Linear(dimEnc200, dimEnc300),  # hidden layer 2
-            nn.ELU(),
-            nn.Linear(dimEnc300, dimEnc400),  # hidden layer 3
-            nn.ELU(),
-            nn.Linear(dimEnc400, dimLatent),  # output layer, same dim as generator latent space
         )
 
+        self.mean = nn.Linear(dimEnc200, dimLatent)
+        self.log_var = nn.Linear(dimEnc200, dimLatent)
+
+        self.training = True  # <=== No idea what this does
+
     def forward(self, x):
-        return self.layers(x)
+        hiddenState = self.layers(x)
+        hiddenMean = self.mean(hiddenState)
+        hiddenLogVar = self.mean(hiddenState)
+
+        return hiddenMean, hiddenLogVar
 
 
-# ========== Decoder model, same as the generator model
-dimDec100 = 64
-dimDec200 = 256
-dimDec300 = 512
-dimDec400 = 1024
-dimDec500 = 512
+# ========== Decoder (same as generator)
+dimDec100 = 4
+dimDec200 = 16
 
 
 class DecoderGenerator(nn.Module):
@@ -60,91 +62,47 @@ class DecoderGenerator(nn.Module):
             nn.ELU(),
             nn.Linear(dimDec100, dimDec200),  # hidden layer 1
             nn.ELU(),
-            nn.Linear(dimDec200, dimDec300),  # hidden layer 2
-            nn.ELU(),
-            nn.Linear(dimDec300, dimDec400),  # hidden layer 3
-            nn.ELU(),
-            nn.Linear(dimDec400, dimDec500),  # hidden layer 4
-            nn.ELU(),
-            nn.Linear(dimDec500, nFeatures), # output layer
+            nn.Linear(dimDec200, dimOutput),  # output layer
         )
 
     def forward(self, x):
         return self.layers(x)
 
 
-# ========== Data-driven discriminator model
-dimDisc100 = 512
-dimDisc200 = 256
-dimDisc300 = 128
-dimDisc400 = 64
-dimDisc500 = 16
-
-class Discriminator(nn.Module):
-    def __init__(self):
+# ========== VP model
+class Model(nn.Module):
+    def __init__(self, theEncoder, theDecoder):
         super().__init__()
+        self.encoder = theEncoder
+        self.decoder = theDecoder
 
-        self.layers = nn.Sequential(
-            nn.Linear(nFeatures, dimDisc100),  # input layer
-            nn.ELU(),
-            nn.Linear(dimDisc100, dimDisc200),  # hidden layer 1
-            nn.ELU(),
-            nn.Linear(dimDisc200, dimDisc300),  # hidden layer 2
-            nn.ELU(),
-            nn.Linear(dimDisc300, dimDisc400),  # hidden layer 3
-            nn.ELU(),
-            nn.Linear(dimDisc400, dimDisc500),  # hidden layer 4
-            nn.ELU(),
-            nn.Linear(dimDisc500, 1),
-            nn.Sigmoid(),  # output layer
-        )
+    def reparametrization(self, mean_, var_):
+        epsilon = torch.randn_like(var).to(device)  # sampling epsilon
+        z = mean_ + var_ * epsilon  # reparametrization trick
+        return z
 
     def forward(self, x):
-        return self.layers(x)
+        hiddenMean, hiddenLogVar = self.encoder(x)
+        z = self.reparameterization(mean_, torch.exp(0.5 * logVar_))  # takes exponential function (log var -> var)
+        xKPlus1 = self.decoder(z)
+
+        return xKPlus1, hiddenMean, hiddenLogVar
 
 
-# ========== Rules discriminator: straight lines
-tmp1 = torch.arange(0, nFeatures, 1)
-tmp2 = torch.ones(nFeatures)
-C = torch.vstack((tmp1, tmp2))
-C = torch.transpose(C, 0, 1)
+weightLossR = 1     # weight for reconstruction loss
+weightLossK = 1     # weight for regularization KL divergence loss
 
 
-def rules_d_straight_line(y_, device):
-    C.to(device)
-    x_ = torch.linalg.lstsq(C, y_).solution
-    return torch.norm(y_ - torch.matmul(C, x_))
+# ========== Loss function
+def loss_function(x, xKPlus1, hiddenMean, hiddenLogVar):
+    # x is target (training data)
+    # xkPlus1 is decoder output
+    lossReproduction = nn.functional.mse_loss(xKPlus1, x)
+    lossRegularizationKLD = - 0.5 * torch.sum(1 + hiddenLogVar - hiddenMean.pow(2) - hiddenLogVar.exp())
 
-
-# =========== Rules discriminator: LTI state model
-def rules_d_state1(y_, device_):
-    x1_ = y_[:, 0:nTimeStamps]
-    x2_ = y_[:, nTimeStamps:nFeatures]
-
-    penalty_ = torch.zeros([myBatchSize, nFeatures]).to(device_)  # this is just for proper sizing
-
-    for m in range(1, nTimeStamps, 1):
-
-        penalty_[:, m] = (10 * (x1_[:, m] - x1_[:, m - 1]) - x2_[:, m - 1])  # 10 = 1/dt_
-        penalty_[:, m + nTimeStamps] = (10 * (x2_[:, m] - x2_[:, m - 1]) + 5 * x1_[:, m - 1])
-
-    return penalty_
-
-
-# ========== Label for fake and real data"""
-def ones_target(size):
-    #   Tensor containing ones, with shape = size    """
-    data = Variable(torch.ones(size, 1)).to(device)
-    return data
-
-
-def zeros_target(size):
-    #   Tensor containing zeros, with shape = size    """
-    data = Variable(torch.zeros(1, size)).to(device)
-    return data
+    return weightLossR * lossReproduction + weightLossK * lossRegularizationKLD
 
 
 # ========== Load the real training data
 data2d = numpy.array(pandas.read_csv('Data/data2D.txt'))
 trainLoader = torch.utils.data.DataLoader(data2d, batch_size=myBatchSize)
-
