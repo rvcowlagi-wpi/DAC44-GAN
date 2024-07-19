@@ -149,7 +149,7 @@
 		but not \emph{exactly} according to the nominal model. Examples:
 		
 		\item $f$ is slightly different, e.g., has some extra terms 
-		due to simplified physics
+		due to simplifications, approximations, epistemic uncertainties
 		
 		\item $w$ is not white noise
 		
@@ -182,7 +182,7 @@
 		\item \alert{Option 1} (most common practice): Find this distribution 
 		from the nominal model
 		\begin{itemize}
-			\item Even this approach involves approximations when $f$ is nonlinear:
+			\item This approach involves approximations when $f$ is nonlinear:
 			e.g., linearization or unscented transform
 			\item Essentially, we entirely neglect the differences between reality 
 			and nominal model and hope that the controller / estimator is robust enough
@@ -214,7 +214,8 @@
 		\itemsep \baselineskip
 		
 		\item We have some \alert{real trajectories}, i.e., time series 
-		$\xi(k) = (x(k), u(k))$ recorded during operation of the real system
+		$\tilde{\xi}(k) = (\tilde{x}(k), \tilde{u}(k))$ recorded during 
+		operation of the real system
 		\begin{itemize}
 			\item These are scarce
 		\end{itemize}
@@ -298,19 +299,35 @@
 
 %%%%%%%%%%%%%%%% NEW FRAME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-	\frametitle{Generative Model}
+	\frametitle{Questions for Randy}
+	
+	\begin{minipage}{0.7\columnwidth}
 	\begin{itemize}[<+->]
 		\itemsep \baselineskip
 		
-		\item Consider a ``variational propagator''
+		\item Are there generative models in other domains (e.g., text / image)
+		that address this type of a problem?
+		
+		\item Perhaps a ``variational propagator''?
 		\begin{align*}
-			\xi &\rightarrow p(z | \xi) \\
+			\xi=(x,u) &\rightarrow p(z | \xi) &
 			z \sim p(z | \xi) &\rightarrow D(z)
 		\end{align*}
+		\begin{itemize}
+			\item Loss$ = \lambda_1 \| D(z) - \mathalert{x(k+1)} \| + 
+			\lambda_2 KL(p~|| \mathcal{N}(0,I) ) + \lambda_3 \underbrace{\|x - f(x,u)\|}_{\text{or } \left| \|x 
+			- f(x,u) \| - \varepsilon \right|}$
+		\end{itemize}
 		
-		\item $L = \| D(z) - x(k + 1) \| + KL$
-		
+		\item How can we ``condition'' this on $x(k), u(k)$?
 	\end{itemize}
+	\end{minipage}
+	\begin{minipage}{0.25\columnwidth}
+		\centering
+		\vspace*{2\baselineskip}
+		\includegraphics[width=0.8\columnwidth]{Figures/kneelingprayer}
+	\end{minipage}
+
 
 \end{frame}
 %---------------------------------------------------------------------------------------------
