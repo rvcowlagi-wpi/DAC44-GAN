@@ -33,67 +33,74 @@ system.
 
 clear variables; close all; clc;
 
-nTrials		= 1;
-nTimePts	= 10;
-tFin		= 1;
-nState		= 2;
+%% Problem setup
+nTrials		= 1000;
+nTimePts	= 1000;
+tFin		= 10;
+nState		= 100;
 dataSize	= nTimePts*nState;
 case_		= 1;
+set_		= 9;
 
-caseName	= ['case_' num2str(case_, '%5.2i')];
+
+%% Book-keeping
+caseName	= ['case' num2str(case_, '%5.2i')];
+setName		= ['set' num2str(set_, '%5.2i')];
 caseHandle	= str2func(caseName);
 
-foldername_ = ['Data/' caseName];
+foldername_ = ['Data/' caseName '/' setName '/'];
 if ~exist(foldername_, 'dir')
 	mkdir(foldername_)
 else
 	delete([foldername_ '/*.csv'])
+	delete([foldername_ '/*.mat'])
 end
+systemDataFileName = [foldername_ 'systemData.mat'];
+
+%% Stable linear system with randomly chosen eigenvalues
+nComplexPair= floor(nState/4);
+nReal		= nState - 2*nComplexPair;
+
+rng(set_, 'twister');
+realEVs		= -5 + 4*rand(nReal, 1);
+complexPart = 5*rand(nComplexPair, 1);
+realPart	= -5 + 4*rand(nComplexPair, 1);
+
+%----- Make a temporary A  matrix in block form
+A_ = zeros(nState);
+for m1 = 1:nReal
+	A_(m1, m1) = realEVs(m1);
+end
+for m1 = 1:nComplexPair
+	m2 = nReal + 2*(m1 - 1) + 1;
+	p_ = poly([realPart(m1) + complexPart(m1)*1i; realPart(m1) - complexPart(m1)*1i]);
+	A_( m2:m2+1, m2:m2+1 ) = [0 1; -p_(3) -p_(2)];
+end
+
+%----- Random symmetric positive definite matrix
+S	= sprandsym(nState, 1);
+
+%----- Get A matrix from a similarity transformation 
+A	= S * A_ / S;
+
+%----- Noise transformation
+G	= 0.5*randn(nState, 1);
+
+systemParameters.A = A;
+systemParameters.G = G;
+
+save(systemDataFileName, 'A', 'G')
+
+%% Run trials
 
 for m = 1:nTrials
-	xSim	= caseHandle(m, nState, nTimePts, tFin);
-	filename_ = [caseName num2str(m) '.csv']
+	xSim	= single(caseHandle(m, nState, nTimePts, tFin, systemParameters));
+	filename_ = [foldername_ 'traj_' num2str(m, '%5.4i') '.csv'];
 
-	plot(linspace(0,tFin, nTimePts+1), xSim, 'LineWidth', 2)
+	% figure
+	% plot(linspace(0,tFin, nTimePts+1), xSim, 'LineWidth', 2)
 
-	% writematrix(traj_k1, filename_ );
+	writematrix(xSim, filename_);
+
 end
 
-return
-
-
-%% Plot a randomly chosen trajectory
-this_trial	= 1 + round(rand*(n_traj_examples - 1));
-% filename_	= [foldername_ '/lti_1d_points' num2str(this_trial) '.csv'];
-% this_traj	= readmatrix(filename_);
-
-this_traj = traj_k1;
-
-figure('units', 'normalized', 'OuterPosition', [0.05 0.05 0.6 0.6]);
-hold on; grid on; axis equal; %axis tight;
-plot(t_sim, this_traj(:, 1), 'LineWidth', 2); hold on;
-plot(t_sim(1:5:end), this_traj(1:5:end, 1), '.', 'MarkerSize', 40)
-xlabel('Time~~$t$','Interpreter','latex');
-ylabel('Output~~$y_1$', 'Interpreter', 'latex'); xlim([0 10])
-ax = gca;
-ax.FontName = 'Arial';
-ax.FontSize = 20;
-% figure('units', 'normalized', 'OuterPosition', [0.05 0.05 0.6 0.6]);
-
-
-return
-
-this_trial = unique( 1 + round(rand(50, 1)*(n_traj_examples - 1)) );
-for m1 = 1:3
-	for m2 = 1:6
-		indx = 6*(m1 - 1) + m2;
-		filename_	= [foldername_ '/lti_1d_points' num2str(this_trial(indx)) '.csv'];
-		this_traj	= readmatrix(filename_);
-
-		subplot(3, 6, indx)
-		plot(t_sim, this_traj(:, 1), 'LineWidth', 2)
-		xlabel('$t$', 'Interpreter','latex')
-		ylabel('$x$', 'Interpreter','latex')
-	end
-end
-% exportgraphics(gcf, 'lti_1d_real_examples.png')

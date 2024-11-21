@@ -33,55 +33,30 @@ Measurement noise	: No
 Unmodeled dynamics	: No
 %}
 
-function xSim = case01(n_, nState, nTimePts, tFin)
+function xSim = case01(n_, nState, nTimePts, tFin, systemParameters)
 
+A = systemParameters.A;
+G = systemParameters.G;
 
 rng(n_*nState, 'twister');
-xSim	= zeros(nState, nTimePts + 1);
+xSim	= zeros(nState, nTimePts + 1, 'single');
 x		= -5 + 10*rand(nState, 1);
 
-xSim(:, 1)	= x;
+xSim(:, 1)	= single(x);
 
-%% Stable linear system with randomly chosen eigenvalues
-nComplexPair= floor(nState/4);
-nReal		= nState - 2*nComplexPair;
 
-rng(1, 'twister');
-realEVs		= -5 + 4*rand(nReal, 1);
-complexPart = 5*rand(nComplexPair, 1);
-realPart	= -5 + 4*rand(nComplexPair, 1);
-
-%----- Make a temporary A  matrix in block form
-A_ = zeros(nState);
-for m1 = 1:nReal
-	A_(m1, m1) = realEVs(m1);
-end
-for m1 = 1:nComplexPair
-	m2 = nReal + 2*(m1 - 1) + 1;
-	p_ = poly([realPart(m1) + complexPart(m1)*1i; realPart(m1) - complexPart(m1)*1i]);
-	A_( m2:m2+1, m2:m2+1 ) = [0 1; -p_(3) -p_(2)];
-end
-
-%----- Random symmetric positive definite matrix
-S	= sprandsym(nState, 1);
-
-%----- Get A matrix from a similarity transformation 
-A	= S * A_ / S;
-
-%----- Noise transformation
-G	= 0.1*randn(nState, 1);
 
 %----- Time step and noise step
 dt_	= tFin / nTimePts;
-ndt_= 5;
+ndt_= 50;
 
 rng(n_, 'twister');
-w	= -1 + 2*rand
+w	= -1 + 2*rand;
 for m1 = 2:(nTimePts + 1)
 	t	= (m1 - 1)*dt_;
 	u	= 0;
 	if ~mod(m1, ndt_)
-		w	= -1 + 2*rand
+		w	= -1 + 2*rand;
 	end
 
 	x	= rk4_step(t, x, u, w);
@@ -90,7 +65,7 @@ end
 
 
 	function xDot_ = system_(t_, x_, u_, w_)
-		xDot_ = A*x_ + G*w_;
+		xDot_ = single( A*x_ + G*w_);
 	end
 
 
