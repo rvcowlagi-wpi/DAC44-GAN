@@ -27,53 +27,39 @@ dealings in the software.
 
 PROGRAM DESCRIPTION
 -------------------
-This script generates trajectory examples of a one-state stable LTI system.
-The time constant and initial condition are randomly chosen. The duration
-of the trajectories is fixed at 10s.
-
-
-
+This script generates trajectory examples of an uncontrolled dynamical
+system.
 %}
 
 clear variables; close all; clc;
 
 nTrials		= 1;
-nTimePts	= 100;
-nState		= 1;
+nTimePts	= 10;
+tFin		= 1;
+nState		= 2;
 dataSize	= nTimePts*nState;
-stateData	= zeros(dataSize, nTrials);
 case_		= 1;
 
-caseHandle	= ['case_' num2str(case_, '%5.2i')];
+caseName	= ['case_' num2str(case_, '%5.2i')];
+caseHandle	= str2func(caseName);
+
+foldername_ = ['Data/' caseName];
+if ~exist(foldername_, 'dir')
+	mkdir(foldername_)
+else
+	delete([foldername_ '/*.csv'])
+end
 
 for m = 1:nTrials
-	xSim	= @caseHandle(m)
-	stateData(:, m) = x_sim(:);
+	xSim	= caseHandle(m, nState, nTimePts, tFin);
+	filename_ = [caseName num2str(m) '.csv']
+
+	plot(linspace(0,tFin, nTimePts+1), xSim, 'LineWidth', 2)
+
+	% writematrix(traj_k1, filename_ );
 end
 
-
-n_traj_examples = nTrials; 
-% n_traj_examples can differ slightly from n_trials if solutions are not
-% found for some trials
-
-% foldername_ = ['Min-Time-GAN/RVC-Sandbox/LTI-1D-trajectory-examples/n' ...
-% 	num2str(n_trials, '%.4i') '_t' num2str(posixtime(datetime(datestr(now))))];
-% mkdir(foldername_)
-
-foldername_ = 'Data/lti_1d_trajectories';
-delete([foldername_ '/*.csv'])
-
-for k1 = 1:n_traj_examples
-	traj_k1		= zeros(nTimePts, nState);
-	for k2 = 1:nState
-		traj_k1(:, k2) = stateData( ...
-			(1 + (k2 - 1)*nTimePts):(k2*nTimePts), k1 );
-	end
-	
-	filename_ = [foldername_ '/lti_1d_points' num2str(k1) '.csv'];
-
-% 	writematrix(traj_k1, filename_ );
-end
+return
 
 
 %% Plot a randomly chosen trajectory
