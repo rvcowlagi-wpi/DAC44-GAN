@@ -33,3 +33,10 @@ Measurement noise	: No
 Unmodeled dynamics	: No
 %}
 
+function xSim_ = case_01(nTrial_, nState, nTimePts)
+
+x0_ = -5 + 10*rand(nState, 1);
+
+ode45(@(t, x) system_(t, x, A), linspace(0, 10, nTimePts), x0_);
+
+function xDot_ = system_(t__, x__)

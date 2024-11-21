@@ -37,23 +37,22 @@ of the trajectories is fixed at 10s.
 
 clear variables; close all; clc;
 
-%------ For traditional Zermelo solutions
-n_trials	= 1;
-n_traj_pts	= 100;
-n_state		= 1;
-size_data	= n_traj_pts*n_state;
-baseline_data = zeros(size_data, n_trials);
-remove_trials = false(1,n_trials);
-for m = 1:n_trials
-	x0	= -5 + 10*rand(n_state, 1);
-	a	= -0.5;
+nTrials		= 1;
+nTimePts	= 100;
+nState		= 1;
+dataSize	= nTimePts*nState;
+stateData	= zeros(dataSize, nTrials);
+case_		= 1;
 
-	[t_sim, x_sim] = ode45(@(t,x) a*x, linspace(0,10,n_traj_pts), x0);
-	baseline_data(:, m) = x_sim(:);
+caseHandle	= ['case_' num2str(case_, '%5.2i')];
+
+for m = 1:nTrials
+	xSim	= @caseHandle(m)
+	stateData(:, m) = x_sim(:);
 end
 
 
-n_traj_examples = n_trials; 
+n_traj_examples = nTrials; 
 % n_traj_examples can differ slightly from n_trials if solutions are not
 % found for some trials
 
@@ -65,10 +64,10 @@ foldername_ = 'Data/lti_1d_trajectories';
 delete([foldername_ '/*.csv'])
 
 for k1 = 1:n_traj_examples
-	traj_k1		= zeros(n_traj_pts, n_state);
-	for k2 = 1:n_state
-		traj_k1(:, k2) = baseline_data( ...
-			(1 + (k2 - 1)*n_traj_pts):(k2*n_traj_pts), k1 );
+	traj_k1		= zeros(nTimePts, nState);
+	for k2 = 1:nState
+		traj_k1(:, k2) = stateData( ...
+			(1 + (k2 - 1)*nTimePts):(k2*nTimePts), k1 );
 	end
 	
 	filename_ = [foldername_ '/lti_1d_points' num2str(k1) '.csv'];
