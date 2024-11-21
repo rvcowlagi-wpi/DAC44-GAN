@@ -1,4 +1,4 @@
-%{
+ %{
 SOFTWARE LICENSE
 ----------------
 Copyright (c) 2023 by Raghvendra V. Cowlagi
@@ -33,10 +33,39 @@ Measurement noise	: No
 Unmodeled dynamics	: No
 %}
 
-function xSim_ = case_01(nTrial_, nState, nTimePts)
+function xSim = case_01(nTrial, nState, nTimePts, tFin)
 
-x0_ = -5 + 10*rand(nState, 1);
+xSim	= zeros(nState, nTimePts + 1);
+
+x		= -5 + 10*rand(nState, 1);
+xSim(:, 1)	= x;
+
+dt_		= tFin / nTimePts;
+for m1 = 2:(nTimePts + 1)
+	x	= rk4_step(t, x, w);
+end
+
 
 ode45(@(t, x) system_(t, x, A), linspace(0, 10, nTimePts), x0_);
 
-function xDot_ = system_(t__, x__)
+	function xDot_ = system_(t, x_, w_)
+		xDot_ = A*x + w_(t)
+
+	end
+
+
+	function x_ = rk4_step(t, x_t, u_t)
+
+		a1	= 0.5;		a2	= 0.5;		a3	= 1;
+		b1	= 0.5;		b2	= 0;		b3	= 0.5;
+		b4	= 0;		b5	= 0;		b6	= 1;
+		g1	= 1/6;		g2	= 1/3;		g3	= 1/3;		g4	= 1/6;
+
+		k1	= dt_ * system_(t, x_t, u_t);
+		k2	= dt_ * system_(t + a1*dt_, x_t + b1*k1, u_t);
+		k3	= dt_ * system_(t + a2*dt_, x_t + b2*k1 + b3*k2, u_t);
+		k4	= dt_ * system_(t + a3*dt_, x_t + b4*k1 + b5*k2 + b6*k3, u_t);
+
+		x_ = x_t + g1*k1 + g2*k2 + g3*k3 + g4*k4;
+	end
+end
